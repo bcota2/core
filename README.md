@@ -68,3 +68,53 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+##INSTALLS
+npm install better-sqlite3
+
+##Notas
+
+CODIGO GET_PRODUCTS
+{productos.map((cat) => (
+<tr key={cat.ProductoID}>
+<td>{cat.Codigo}</td>
+<td>{cat.Nombre}</td>
+<td>{cat.CodigoBarras}</td>
+<td>{cat.Descripcion}</td>
+<td>{cat.CategoriaID}</td>
+<td>{cat.Unidad}</td>
+<td>{cat.PrecioCompra}</td>
+<td>{cat.PrecioVenta}</td>
+<td>{cat.StockMinimo}</td>
+<td>{cat.StockMaximo}</td>
+<td>{cat.ProveedorID}</td>
+<td>{cat.Estado}</td>
+<td>{cat.NotasInternas}</td>
+<td>-</td>
+{/_ Aquí podrías poner el número de productos si lo tienes _/}
+<td>
+<span
+className={`badge ${
+                cat.Estado === "Activa"
+                ? "bg-success"
+                : "bg-secondary"
+            }`} >
+{cat.Estado}
+</span>
+</td>
+<td className="text-center">
+<button
+className="btn btn-sm btn-outline-primary me-1"
+onClick={() =>
+navigate(`/categories/edit/${cat.CategoriaID}`)
+} >
+<i className="bi bi-pencil"></i>
+</button>
+<button
+className="btn btn-sm btn-outline-danger"
+onClick={() => handleEliminarCategoria(cat.CategoriaID)} >
+<i className="bi bi-trash"></i>
+</button>
+</td>
+</tr>
+))}

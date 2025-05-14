@@ -1,7 +1,16 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 function Products() {
   const navigate = useNavigate();
+  const [productos, setProductos] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/products")
+      .then((res) => res.json())
+      .then((data) => setProductos(data))
+      .catch((err) => console.error("Error cargando productos:", err));
+  }, []);
 
   return (
     <div className="container-fluid">
@@ -11,9 +20,9 @@ function Products() {
           <h4 className="m-0">GESTIÓN DE PRODUCTOS</h4>
         </div>
         <div className="col-lg-4 text-end">
-          <button 
+          <button
             className="btn btn-success"
-            onClick={() => navigate('/products/new')}
+            onClick={() => navigate("/products/new")}
           >
             <i className="bi bi-plus-circle"></i> Nuevo Producto
           </button>
@@ -78,11 +87,13 @@ function Products() {
                   <td>$15,999.00</td>
                   <td className="text-success fw-bold">25</td>
                   <td>PZA</td>
-                  <td><span className="badge bg-success">Activo</span></td>
+                  <td>
+                    <span className="badge bg-success">Activo</span>
+                  </td>
                   <td className="text-center">
-                    <button 
+                    <button
                       className="btn btn-sm btn-outline-primary me-1"
-                      onClick={() => navigate('/products/edit/PROD-001')}
+                      onClick={() => navigate("/products/edit/PROD-001")}
                     >
                       <i className="bi bi-pencil"></i>
                     </button>
@@ -103,19 +114,29 @@ function Products() {
           <nav>
             <ul className="pagination">
               <li className="page-item disabled">
-                <a className="page-link" href="#">Anterior</a>
+                <a className="page-link" href="#">
+                  Anterior
+                </a>
               </li>
               <li className="page-item active">
-                <a className="page-link" href="#">1</a>
+                <a className="page-link" href="#">
+                  1
+                </a>
               </li>
               <li className="page-item">
-                <a className="page-link" href="#">2</a>
+                <a className="page-link" href="#">
+                  2
+                </a>
               </li>
               <li className="page-item">
-                <a className="page-link" href="#">3</a>
+                <a className="page-link" href="#">
+                  3
+                </a>
               </li>
               <li className="page-item">
-                <a className="page-link" href="#">Siguiente</a>
+                <a className="page-link" href="#">
+                  Siguiente
+                </a>
               </li>
             </ul>
           </nav>
@@ -134,11 +155,13 @@ function ProductForm() {
       {/* Encabezado */}
       <div className="row mb-4 bg-light p-3">
         <div className="col-lg-8">
-          <h4 className="m-0">{isEditing ? 'EDITAR PRODUCTO' : 'NUEVO PRODUCTO'}</h4>
+          <h4 className="m-0">
+            {isEditing ? "EDITAR PRODUCTO" : "NUEVO PRODUCTO"}
+          </h4>
         </div>
         <div className="col-lg-4 text-end">
           <span style={{ fontSize: 18 }}>
-            <strong>Código:</strong> {isEditing ? 'PROD-001' : 'Nuevo'}
+            <strong>Código:</strong> {isEditing ? "PROD-001" : "Nuevo"}
           </span>
         </div>
       </div>
@@ -289,7 +312,7 @@ function ProductForm() {
           <button
             className="btn btn-outline-secondary me-2"
             style={{ padding: "8px 20px", fontSize: 16 }}
-            onClick={() => navigate('/products')}
+            onClick={() => navigate("/products")}
           >
             <i className="bi bi-x-circle"></i> Cancelar
           </button>

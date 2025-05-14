@@ -1,7 +1,31 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import React from "react";
 
 function Categories() {
   const navigate = useNavigate();
+  const [categorias, setCategorias] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/categories")
+      .then((res) => res.json())
+      .then((data) => setCategorias(data))
+      .catch((err) => console.error("Error cargando categorías:", err));
+  }, []);
+
+  const handleEliminarCategoria = (id) => {
+    if (!window.confirm("¿Deseas eliminar esta categoría?")) return;
+
+    fetch(`http://localhost:3001/api/categories/${id}`, {
+      method: "DELETE",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data.message);
+        setCategorias(categorias.filter((cat) => cat.CategoriaID !== id));
+      })
+      .catch((err) => console.error("Error al eliminar:", err));
+  };
 
   return (
     <div className="container-fluid">
@@ -11,9 +35,9 @@ function Categories() {
           <h4 className="m-0">GESTIÓN DE CATEGORÍAS</h4>
         </div>
         <div className="col-lg-4 text-end">
-          <button 
+          <button
             className="btn btn-success"
-            onClick={() => navigate('/categories/new')}
+            onClick={() => navigate("/categories/new")}
           >
             <i className="bi bi-plus-circle"></i> Nueva Categoría
           </button>
@@ -61,24 +85,42 @@ function Categories() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>CAT-ELEC</td>
-                  <td>Electrónicos</td>
-                  <td>-</td>
-                  <td>42</td>
-                  <td><span className="badge bg-success">Activa</span></td>
-                  <td className="text-center">
-                    <button 
-                      className="btn btn-sm btn-outline-primary me-1"
-                      onClick={() => navigate('/categories/edit/CAT-ELEC')}
-                    >
-                      <i className="bi bi-pencil"></i>
-                    </button>
-                    <button className="btn btn-sm btn-outline-danger">
-                      <i className="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
+                {categorias.map((cat) => (
+                  <tr key={cat.CategoriaID}>
+                    <td>{cat.Codigo}</td>
+                    <td>{cat.Nombre}</td>
+                    <td>{cat.CategoriaPadre || "-"}</td>
+                    <td>-</td>
+                    {/* Aquí podrías poner el número de productos si lo tienes */}
+                    <td>
+                      <span
+                        className={`badge ${
+                          cat.Estado === "Activa"
+                            ? "bg-success"
+                            : "bg-secondary"
+                        }`}
+                      >
+                        {cat.Estado}
+                      </span>
+                    </td>
+                    <td className="text-center">
+                      <button
+                        className="btn btn-sm btn-outline-primary me-1"
+                        onClick={() =>
+                          navigate(`/categories/edit/${cat.CategoriaID}`)
+                        }
+                      >
+                        <i className="bi bi-pencil"></i>
+                      </button>
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => handleEliminarCategoria(cat.CategoriaID)}
+                      >
+                        <i className="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -91,16 +133,16 @@ function Categories() {
           <nav>
             <ul className="pagination">
               <li className="page-item disabled">
-                <a className="page-link" href="#">Anterior</a>
+                <button className="page-link">Anterior</button>
               </li>
               <li className="page-item active">
-                <a className="page-link" href="#">1</a>
+                <button className="page-link">1</button>
               </li>
               <li className="page-item">
-                <a className="page-link" href="#">2</a>
+                <button className="page-link">2</button>
               </li>
               <li className="page-item">
-                <a className="page-link" href="#">Siguiente</a>
+                <button className="page-link">Siguiente</button>
               </li>
             </ul>
           </nav>
@@ -112,18 +154,77 @@ function Categories() {
 
 function CategoryForm() {
   const navigate = useNavigate();
-  const isEditing = true; // Cambiar según corresponda
+  const { id } = useParams(); // Detecta si hay ID (modo edición)
+  const isEditing = !!id;
+
+  const [formData, setFormData] = useState({
+    Codigo: "",
+    Nombre: "",
+    CategoriaPadre: "",
+    Descripcion: "",
+    Estado: "Activa",
+    Impuesto: 16.0,
+    CodigoSAT: "",
+  });
+
+  useEffect(() => {
+    if (isEditing) {
+      fetch(`http://localhost:3001/api/categories`)
+        .then((res) => res.json())
+        .then((data) => {
+          const categoria = data.find((c) => c.CategoriaID === id);
+          if (categoria) {
+            setFormData(categoria);
+          }
+        });
+    }
+  }, [id, isEditing]);
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [id.replace("txt", "").replace("cmb", "")]: value,
+    }));
+  };
+  const handleGuardar = () => {
+    const method = isEditing ? "PUT" : "POST";
+    const endpoint = isEditing
+      ? `http://localhost:3001/api/categories/${id}`
+      : "http://localhost:3001/api/categories";
+
+    const data = {
+      ...formData,
+      CategoriaPadre: formData.CategoriaPadre
+        ? parseInt(formData.CategoriaPadre)
+        : null,
+    };
+
+    fetch(endpoint, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        alert("Categoría guardada correctamente");
+        navigate("/categories");
+      })
+      .catch((err) => console.error("Error al guardar:", err));
+  };
 
   return (
     <div className="container-fluid">
       {/* Encabezado */}
       <div className="row mb-4 bg-light p-3">
         <div className="col-lg-8">
-          <h4 className="m-0">{isEditing ? 'EDITAR CATEGORÍA' : 'NUEVA CATEGORÍA'}</h4>
+          <h4 className="m-0">
+            {isEditing ? "EDITAR CATEGORÍA" : "NUEVA CATEGORÍA"}
+          </h4>
         </div>
         <div className="col-lg-4 text-end">
           <span style={{ fontSize: 18 }}>
-            <strong>Código:</strong> {isEditing ? 'CAT-ELEC' : 'Auto-generado'}
+            <strong>Código:</strong> {isEditing ? "CAT-ELEC" : "Auto-generado"}
           </span>
         </div>
       </div>
@@ -133,52 +234,74 @@ function CategoryForm() {
         <div className="col-lg-6 p-2">
           <label style={{ fontSize: 18 }}>Nombre *</label>
           <input
-            className="input-text form-control"
-            id="txtName"
+            className="form-control"
+            id="txtNombre"
             type="text"
+            value={formData.Nombre}
+            onChange={handleChange}
             placeholder="Ej: Electrónicos"
           />
         </div>
+
         <div className="col-lg-6 p-2">
           <label style={{ fontSize: 18 }}>Categoría Padre</label>
-          <select className="input-text form-control" id="cmbParentCategory">
+          <select
+            className="form-control"
+            id="cmbCategoriaPadre"
+            value={formData.CategoriaPadre || ""}
+            onChange={handleChange}
+          >
             <option value="">Ninguna (categoría raíz)</option>
             <option value="1">Tecnología</option>
           </select>
         </div>
+
         <div className="col-lg-12 p-2">
           <label style={{ fontSize: 18 }}>Descripción</label>
           <textarea
-            className="input-text form-control"
-            id="txtDescription"
+            className="form-control"
+            id="txtDescripcion"
             rows="3"
+            value={formData.Descripcion}
+            onChange={handleChange}
             placeholder="Descripción de la categoría..."
           ></textarea>
         </div>
+
         <div className="col-lg-4 p-2">
           <label style={{ fontSize: 18 }}>Estado *</label>
-          <select className="input-text form-control" id="cmbStatus">
-            <option value="active">Activa</option>
-            <option value="inactive">Inactiva</option>
+          <select
+            className="form-control"
+            id="cmbEstado"
+            value={formData.Estado}
+            onChange={handleChange}
+          >
+            <option value="Activa">Activa</option>
+            <option value="Inactiva">Inactiva</option>
           </select>
         </div>
+
         <div className="col-lg-4 p-2">
           <label style={{ fontSize: 18 }}>Impuesto (%) *</label>
           <input
-            className="input-text form-control"
-            id="txtTax"
+            className="form-control"
+            id="txtImpuesto"
             type="number"
             step="0.01"
             min="0"
-            defaultValue="16.00"
+            value={formData.Impuesto}
+            onChange={handleChange}
           />
         </div>
+
         <div className="col-lg-4 p-2">
           <label style={{ fontSize: 18 }}>Código SAT *</label>
           <input
-            className="input-text form-control"
-            id="txtSatCode"
+            className="form-control"
+            id="txtCodigoSAT"
             type="text"
+            value={formData.CodigoSAT}
+            onChange={handleChange}
             placeholder="Ej: 85171800"
           />
         </div>
@@ -190,13 +313,14 @@ function CategoryForm() {
           <button
             className="btn btn-outline-secondary me-2"
             style={{ padding: "8px 20px", fontSize: 16 }}
-            onClick={() => navigate('/categories')}
+            onClick={() => navigate("/categories")}
           >
             <i className="bi bi-x-circle"></i> Cancelar
           </button>
           <button
             className="btn btn-primary"
             style={{ padding: "8px 20px", fontSize: 16 }}
+            onClick={handleGuardar}
           >
             <i className="bi bi-check-circle"></i> Guardar
           </button>
