@@ -114,29 +114,19 @@ function Products() {
           <nav>
             <ul className="pagination">
               <li className="page-item disabled">
-                <button className="page-link">
-                  Anterior
-                </button>
+                <button className="page-link">Anterior</button>
               </li>
               <li className="page-item active">
-                <button className="page-link" >
-                  1
-                </button>
+                <button className="page-link">1</button>
               </li>
               <li className="page-item">
-                <button className="page-link">
-                  2
-                </button>
+                <button className="page-link">2</button>
               </li>
               <li className="page-item">
-                <button className="page-link" >
-                  3
-                </button>
+                <button className="page-link">3</button>
               </li>
               <li className="page-item">
-                <button className="page-link" >
-                  Siguiente
-                </button>
+                <button className="page-link">Siguiente</button>
               </li>
             </ul>
           </nav>
@@ -150,36 +140,95 @@ function ProductForm() {
   const navigate = useNavigate();
   const isEditing = true;
   const [categorias, setCategorias] = useState([]);
+  const [proveedores, setProveedores] = useState([]);
 
   useEffect(() => {
     fetch("http://localhost:3001/api/categories")
       .then((res) => res.json())
       .then((data) => setCategorias(data))
       .catch((err) => console.error("Error cargando categorías:", err));
+
+    fetch("http://localhost:3001/api/suppliers")
+      .then((res) => res.json())
+      .then((data) => setProveedores(data))
+      .catch((err) => console.error("Error cargando proveedores:", err));
   }, []);
 
-  const [formData, setFormData] = useState({
-    Nombre: "",
-    Codigo: "",
-    CodigoBarras: "",
-    CategoriaID: "", // ← necesario
-    Unidad: "",
-    PrecioCompra: 0,
-    PrecioVenta: 0,
-    StockMinimo: 0,
-    StockMaximo: 0,
-    Ubicacion: "",
-    ProveedorID: "",
-    Estado: "Activo",
-    NotasInternas: "",
-  });
+  const obtenerDatosProductos = () => {
+    return {
+      Nombre: document.getElementById("txtNombre").value,
+      CategoriaID: document.getElementById("cmbCategoriaID").value,
+      Unidad: document.getElementById("cmbUnit").value,
+      PrecioCompra: document.getElementById("txtCost").value,
+      PrecioVenta: document.getElementById("txtPrice").value,
+      StockMinimo: document.getElementById("txtMinStock").value,
+      StockMaximo: document.getElementById("txtMaxStock").value,
+      Proveedor: document.getElementById("cmbSupplier").value,
+      Estado: document.getElementById("cmbStatus").value,
+      Descripcion: document.getElementById("txtDescription").value,
+      Notas: document.getElementById("txtNotes").value,
+    };
+  };
 
-const handleChange = (e) => {
-  const { id, value } = e.target;
-  const key = id.replace("txt", "").replace("cmb", "");
-  setFormData((prev) => ({ ...prev, [key]: value }));
-};
+  const guardarProducto = () => {
+    const producto = obtenerDatosProductos();
 
+    const camposObligatorios = [
+      { campo: producto.Nombre, etiqueta: "Nombre" },
+      { campo: producto.CategoriaID, etiqueta: "CategoríaID" },
+      { campo: producto.Unidad, etiqueta: "Unidad" },
+      { campo: producto.PrecioCompra, etiqueta: "Precio de Compra" },
+      { campo: producto.PrecioVenta, etiqueta: "Precio de Venta" },
+      { campo: producto.StockMinimo, etiqueta: "Stock Mínimo" },
+      { campo: producto.StockMaximo, etiqueta: "Stock Máximo" },
+      { campo: producto.Estado, etiqueta: "Estado" },
+    ];
+
+    for (const { campo, etiqueta } of camposObligatorios) {
+      if (!campo || campo.toString().trim() === "") {
+        alert(`Por favor completa el campo: ${etiqueta}`);
+        return;
+      }
+    }
+
+    fetch("http://localhost:3001/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(producto),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        alert(data.message);
+        limpiarFormulario(); // opcional
+      })
+      .catch((err) => console.error("Error al guardar producto:", err));
+  };
+  const limpiarFormulario = () => {
+    const limpiar = (id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    };
+
+    [
+      "txtNombre",
+      "cmbCategoria",
+      "txtContact",
+      "txtPhone",
+      "txtEmail",
+      "txtWebsite",
+      "txtCreditLimit",
+      "txtAddress",
+      "txtNeighborhood",
+      "txtPostalCode",
+      "txtCity",
+      "cmbState",
+      "txtCountry",
+      "cmbBank",
+      "txtClabe",
+      "txtAccountNumber",
+      "cmbCurrency",
+    ].forEach(limpiar);
+  };
 
   return (
     <div className="container-fluid">
@@ -231,12 +280,7 @@ const handleChange = (e) => {
             </div>
             <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Categoría *</label>
-              <select
-                className="form-control"
-                id="cmbCategoriaID"
-                value={formData.CategoriaID || ""}
-                onChange={handleChange}
-              >
+              <select className="form-control input-text" id="cmbCategoriaID">
                 <option value="">Seleccionar...</option>
                 {categorias.map((cat) => (
                   <option key={cat.CategoriaID} value={cat.CategoriaID}>
@@ -313,8 +357,11 @@ const handleChange = (e) => {
               <label style={{ fontSize: 18 }}>Proveedor Principal</label>
               <select className="input-text form-control" id="cmbSupplier">
                 <option value="">Seleccionar...</option>
-                <option value="1">Proveedor A</option>
-                <option value="2">Proveedor B</option>
+                {proveedores.map((cat) => (
+                  <option key={cat.ProveedorID} value={cat.ProveedorID}>
+                    {cat.Nombre}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="col-lg-6 p-2">
@@ -347,11 +394,8 @@ const handleChange = (e) => {
           >
             <i className="bi bi-x-circle"></i> Cancelar
           </button>
-          <button
-            className="btn btn-primary"
-            style={{ padding: "8px 20px", fontSize: 16 }}
-          >
-            <i className="bi bi-check-circle"></i> Guardar Producto
+          <button className="btn btn-primary" onClick={guardarProducto}>
+            Guardar Producto
           </button>
         </div>
       </div>

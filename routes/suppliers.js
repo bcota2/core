@@ -11,8 +11,7 @@ router.get("/", (req, res) => {
 
 // Crear un nuevo proveedor
 router.post("/", (req, res) => {
-  debugger; // ← Esto detendrá la ejecución
-
+  
   const data = req.body;
 
   const stmt = db.prepare(`
@@ -40,6 +39,9 @@ router.post("/", (req, res) => {
       stmtProd.run(proveedorID, prod.Nombre, prod.Codigo, prod.TiempoEntrega);
     }
   }
+  res
+    .status(201)
+    .json({ message: `Supplier "${data.Nombre}" registrado correctamente!`});
 });
 
 // Eliminar proveedor por ID

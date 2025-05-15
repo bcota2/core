@@ -5,7 +5,6 @@ const router = express.Router();
 
 // Obtener todas las categorías
 router.get("/", (req, res) => {
-  debugger;
   const categorias = db.prepare("SELECT * FROM Categorias").all();
   res.json(categorias);
 });
