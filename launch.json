@@ -4,7 +4,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Iniciar Backend",
+      "name": "Debug Backend",
       "program": "${workspaceFolder}/server.js"
     }
   ]

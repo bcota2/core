@@ -1,7 +1,68 @@
+import React, { useState } from "react";
 import "../styles/inputs.css";
 import "../styles/checks.css";
 
 export default function PurchaseSeuppliers() {
+  const [productos, setProductos] = useState([
+    { Nombre: "", Codigo: "", TiempoEntrega: "" },
+  ]);
+
+  const agregarProducto = () => {
+    setProductos([...productos, { Nombre: "", Codigo: "", TiempoEntrega: "" }]);
+  };
+
+  const actualizarProducto = (index, campo, valor) => {
+    const nuevosProductos = [...productos];
+    nuevosProductos[index][campo] = valor;
+    setProductos(nuevosProductos);
+  };
+
+  const eliminarProducto = (index) => {
+    const nuevos = productos.filter((_, i) => i !== index);
+    setProductos(nuevos);
+  };
+
+  const obtenerDatosProveedor = () => {
+    return {
+      Nombre: document.getElementById("txtSupplierName").value,
+      RFC: document.getElementById("txtRFC").value,
+      Contacto: document.getElementById("txtContact").value,
+      Telefono: document.getElementById("txtPhone").value,
+      Email: document.getElementById("txtEmail").value,
+      SitioWeb: document.getElementById("txtWebsite").value,
+      LimiteCredito: parseFloat(
+        document.getElementById("txtCreditLimit").value || 0
+      ),
+      CalleNumero: document.getElementById("txtAddress").value,
+      Colonia: document.getElementById("txtNeighborhood").value,
+      CP: document.getElementById("txtPostalCode").value,
+      Ciudad: document.getElementById("txtCity").value,
+      Estado: document.getElementById("cmbState").value,
+      Pais: document.getElementById("txtCountry").value,
+      Banco: document.getElementById("cmbBank").value,
+      CLABE: document.getElementById("txtClabe").value,
+      NumCuenta: document.getElementById("txtAccountNumber").value,
+      Moneda: document.getElementById("cmbCurrency").value,
+      Productos: productos,
+    };
+  };
+
+  const guardarProveedor = () => {
+    const proveedor = obtenerDatosProveedor();
+
+    fetch("http://localhost:3001/api/suppliers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(proveedor),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        alert("Proveedor guardado correctamente");
+        // opcional: limpiar formulario o redirigir
+      })
+      .catch((err) => console.error("Error al guardar proveedor:", err));
+  };
+
   return (
     <>
       <div className="container-fluid">
@@ -78,21 +139,8 @@ export default function PurchaseSeuppliers() {
             />
           </div>
 
-          {/* Días de Crédito */}
-          <div className="col-lg-2 p-3">
-            <label style={{ fontSize: 18 }}>Días Crédito</label>
-            <select className="input-text form-control" id="cmbCreditDays">
-              <option value="0">Contado</option>
-              <option value="15">15 días</option>
-              <option value="30" selected>
-                30 días
-              </option>
-              <option value="60">60 días</option>
-            </select>
-          </div>
-
           {/* Límite de Crédito */}
-          <div className="col-lg-2 p-3">
+          <div className="col-lg-4 p-3">
             <label style={{ fontSize: 18 }}>Límite Crédito (MXN)</label>
             <input
               className="input-text form-control"
@@ -247,28 +295,59 @@ export default function PurchaseSeuppliers() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>
-                      <input className="input-text form-control" type="text" />
-                    </td>
-                    <td>
-                      <input className="input-text form-control" type="text" />
-                    </td>
-                    <td>
-                      <input
-                        className="input-text form-control"
-                        type="text"
-                        placeholder="Ej: 3 días"
-                      />
-                    </td>
-                    <td>
-                      <button className="btn btn-danger btn-sm">×</button>
-                    </td>
-                  </tr>
+                  {productos.map((prod, index) => (
+                    <tr key={index}>
+                      <td>
+                        <input
+                          className="input-text form-control"
+                          type="text"
+                          value={prod.Nombre}
+                          onChange={(e) =>
+                            actualizarProducto(index, "Nombre", e.target.value)
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="input-text form-control"
+                          type="text"
+                          value={prod.Codigo}
+                          onChange={(e) =>
+                            actualizarProducto(index, "Codigo", e.target.value)
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="input-text form-control"
+                          type="text"
+                          value={prod.TiempoEntrega}
+                          onChange={(e) =>
+                            actualizarProducto(
+                              index,
+                              "TiempoEntrega",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                      <td>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => eliminarProducto(index)}
+                        >
+                          ×
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-            <button className="btn btn-secondary mt-2">
+            <button
+              className="btn btn-secondary mt-2"
+              onClick={agregarProducto}
+            >
               + Agregar Producto
             </button>
           </div>
@@ -286,13 +365,13 @@ export default function PurchaseSeuppliers() {
             <button
               className="btn btn-primary"
               style={{ padding: "8px 20px", fontSize: 16 }}
+              onClick={guardarProveedor}
             >
               Guardar Proveedor
             </button>
           </div>
         </div>
       </div>
-
     </>
   );
 }

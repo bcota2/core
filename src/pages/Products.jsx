@@ -114,29 +114,29 @@ function Products() {
           <nav>
             <ul className="pagination">
               <li className="page-item disabled">
-                <a className="page-link" href="#">
+                <button className="page-link">
                   Anterior
-                </a>
+                </button>
               </li>
               <li className="page-item active">
-                <a className="page-link" href="#">
+                <button className="page-link" >
                   1
-                </a>
+                </button>
               </li>
               <li className="page-item">
-                <a className="page-link" href="#">
+                <button className="page-link">
                   2
-                </a>
+                </button>
               </li>
               <li className="page-item">
-                <a className="page-link" href="#">
+                <button className="page-link" >
                   3
-                </a>
+                </button>
               </li>
               <li className="page-item">
-                <a className="page-link" href="#">
+                <button className="page-link" >
                   Siguiente
-                </a>
+                </button>
               </li>
             </ul>
           </nav>
@@ -148,7 +148,38 @@ function Products() {
 
 function ProductForm() {
   const navigate = useNavigate();
-  const isEditing = true; // Cambiar según sea nuevo/edición
+  const isEditing = true;
+  const [categorias, setCategorias] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/categories")
+      .then((res) => res.json())
+      .then((data) => setCategorias(data))
+      .catch((err) => console.error("Error cargando categorías:", err));
+  }, []);
+
+  const [formData, setFormData] = useState({
+    Nombre: "",
+    Codigo: "",
+    CodigoBarras: "",
+    CategoriaID: "", // ← necesario
+    Unidad: "",
+    PrecioCompra: 0,
+    PrecioVenta: 0,
+    StockMinimo: 0,
+    StockMaximo: 0,
+    Ubicacion: "",
+    ProveedorID: "",
+    Estado: "Activo",
+    NotasInternas: "",
+  });
+
+const handleChange = (e) => {
+  const { id, value } = e.target;
+  const key = id.replace("txt", "").replace("cmb", "");
+  setFormData((prev) => ({ ...prev, [key]: value }));
+};
+
 
   return (
     <div className="container-fluid">
@@ -200,10 +231,18 @@ function ProductForm() {
             </div>
             <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Categoría *</label>
-              <select className="input-text form-control" id="cmbCategory">
+              <select
+                className="form-control"
+                id="cmbCategoriaID"
+                value={formData.CategoriaID || ""}
+                onChange={handleChange}
+              >
                 <option value="">Seleccionar...</option>
-                <option value="electronics">Electrónicos</option>
-                <option value="parts">Refacciones</option>
+                {categorias.map((cat) => (
+                  <option key={cat.CategoriaID} value={cat.CategoriaID}>
+                    {cat.Nombre}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="col-lg-6 p-2">
@@ -249,7 +288,7 @@ function ProductForm() {
                 min="0"
               />
             </div>
-            <div className="col-lg-4 p-2">
+            <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Stock Mínimo *</label>
               <input
                 className="input-text form-control"
@@ -259,7 +298,7 @@ function ProductForm() {
                 defaultValue="10"
               />
             </div>
-            <div className="col-lg-4 p-2">
+            <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Stock Máximo</label>
               <input
                 className="input-text form-control"
@@ -269,15 +308,7 @@ function ProductForm() {
                 defaultValue="100"
               />
             </div>
-            <div className="col-lg-4 p-2">
-              <label style={{ fontSize: 18 }}>Ubicación</label>
-              <input
-                className="input-text form-control"
-                id="txtLocation"
-                type="text"
-                placeholder="A1-B2-03"
-              />
-            </div>
+
             <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Proveedor Principal</label>
               <select className="input-text form-control" id="cmbSupplier">

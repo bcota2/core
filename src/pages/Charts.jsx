@@ -1,6 +1,5 @@
 import { Bar, Pie } from 'react-chartjs-2';
-import { Chart as ChartJS } from 'chart.js/auto';
-
+import { Chart } from 'chart.js/auto';
 export function BarChart({ data, labels, color }) {
   return (
     <Bar
