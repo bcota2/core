@@ -15,7 +15,9 @@ router.post("/", (req, res) => {
   const data = req.body;
 
   // Obtener el total actual de registros
-  const count = db.prepare("SELECT COUNT(*) as total FROM Categorias").get().total;
+  const count = db
+    .prepare("SELECT COUNT(*) as total FROM Categorias")
+    .get().total;
 
   // Generar código único (ej: CAT-0010)
   const nuevoCodigo = `CAT-${(count + 1).toString().padStart(4, "0")}`;
@@ -33,12 +35,13 @@ router.post("/", (req, res) => {
   stmt.run({
     ...data,
     Codigo: nuevoCodigo,
-    CategoriaPadre: data.CategoriaPadre
+    CategoriaPadre: data.CategoriaPadre,
   });
 
-  res.status(201).json({ message: "Categoría creada con código " + nuevoCodigo });
+  res
+    .status(201)
+    .json({ message: "Categoría creada con código " + nuevoCodigo });
 });
-
 
 // Eliminar categoría
 router.delete("/:id", (req, res) => {
@@ -67,6 +70,5 @@ router.put("/:id", (req, res) => {
   stmt.run({ ...data, id });
   res.json({ message: "Categoría actualizada correctamente" });
 });
-
 
 export default router;

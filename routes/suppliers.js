@@ -11,22 +11,35 @@ router.get("/", (req, res) => {
 
 // Crear un nuevo proveedor
 router.post("/", (req, res) => {
+  debugger; // ← Esto detendrá la ejecución
+
   const data = req.body;
 
   const stmt = db.prepare(`
     INSERT INTO Proveedores (
       Nombre, RFC, Contacto, Telefono, Email, SitioWeb,
-      DiasCredito, LimiteCredito, CalleNumero, Colonia, CP,
+      LimiteCredito, CalleNumero, Colonia, CP,
       Ciudad, Estado, Pais, Banco, CLABE, NumCuenta, Moneda
     ) VALUES (
       @Nombre, @RFC, @Contacto, @Telefono, @Email, @SitioWeb,
-      @DiasCredito, @LimiteCredito, @CalleNumero, @Colonia, @CP,
+      @LimiteCredito, @CalleNumero, @Colonia, @CP,
       @Ciudad, @Estado, @Pais, @Banco, @CLABE, @NumCuenta, @Moneda
     )
   `);
-  
-  stmt.run(data);
-  res.status(201).json({ message: "Proveedor registrado" });
+
+  const result = stmt.run(data);
+  const proveedorID = result.lastInsertRowid;
+
+  if (data.Productos && Array.isArray(data.Productos)) {
+    const stmtProd = db.prepare(`
+    INSERT INTO ProveedorProductos (ProveedorID, Nombre, Codigo, TiempoEntrega)
+    VALUES (?, ?, ?, ?)
+  `);
+
+    for (const prod of data.Productos) {
+      stmtProd.run(proveedorID, prod.Nombre, prod.Codigo, prod.TiempoEntrega);
+    }
+  }
 });
 
 // Eliminar proveedor por ID

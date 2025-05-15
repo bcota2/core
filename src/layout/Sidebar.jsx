@@ -7,7 +7,6 @@ import { BsShopWindow } from "react-icons/bs";
 import { HiCube } from "react-icons/hi2";
 import { FaRegFolderOpen } from "react-icons/fa";
 import './Sidebar.css'; 
-import {Products, ProductForm} from "../pages/Products.jsx";
 import { useNavigate } from 'react-router-dom';
 
 

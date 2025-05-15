@@ -172,7 +172,7 @@ function CategoryForm() {
       fetch(`http://localhost:3001/api/categories`)
         .then((res) => res.json())
         .then((data) => {
-          const categoria = data.find((c) => c.CategoriaID === id);
+          const categoria = data.find((c) => c.CategoriaID === parseInt(id));
           if (categoria) {
             setFormData(categoria);
           }
