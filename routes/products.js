@@ -58,12 +58,38 @@ router.post("/", (req, res) => {
   });
 });
 
-
 // Eliminar
 router.delete("/:id", (req, res) => {
   const { id } = req.params;
-  db.prepare("DELETE FROM Productos WHERE ProductID = ?").run(id);
-  res.json({ message: "Producto eliminado" });
+  db.prepare("DELETE FROM Productos WHERE ProductoID = ?").run(id);
+  res.json({ message: "Producto Eliminado" });
 });
+
+// Actualizar categoría existente
+router.put("/:id", (req, res) => {
+  const { id } = req.params.id;
+  const data = req.body;
+
+  const stmt = db.prepare(`
+    UPDATE Productos SET
+      Nombre = @Nombre, 
+      CodigoBarras = @CodigoBarras, 
+      Descripcion = @Descripcion,
+      CategoriaID = @CategoriaID,
+      Unidad = @Unidad, 
+      PrecioCompra = @PrecioCompra, 
+      PrecioVenta = @PrecioVenta,
+      StockMinimo = @StockMinimo, 
+      StockMaximo = @StockMaximo, 
+      ProveedorID = @ProveedorID, 
+      Estado = @Estado, 
+      NotasInternas = @NotasInternas
+    WHERE ProductoID = @id
+  `);
+
+  stmt.run({ ...data, ProductoID: id });
+  res.json({ message: "Producto actualizado correctamente." });
+});
+
 
 export default router;

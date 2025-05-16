@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 function Products() {
@@ -11,6 +11,21 @@ function Products() {
       .then((data) => setProductos(data))
       .catch((err) => console.error("Error cargando productos:", err));
   }, []);
+
+  const handleEliminarProducto = (id) => {
+    debugger;
+    if (!window.confirm("¿Deseas eliminar este producto?")) return;
+
+    fetch(`http://localhost:3001/api/products/${id}`, {
+      method: "DELETE",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data.message);
+        setProductos(productos.filter((prod) => prod.ProductoID !== id));
+      })
+      .catch((err) => console.error("Error al eliminar:", err));
+  };
 
   return (
     <div className="container-fluid">
@@ -70,38 +85,57 @@ function Products() {
               <thead className="bg-light">
                 <tr>
                   <th width="10%">Código</th>
-                  <th width="20%">Nombre</th>
+                  <th width="15%">Nombre</th>
                   <th width="15%">Categoría</th>
+                  <th width="15%">Descripcion</th>
                   <th width="10%">Precio</th>
-                  <th width="10%">Stock</th>
                   <th width="10%">Unidad</th>
                   <th width="10%">Estado</th>
                   <th width="15%">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>PROD-001</td>
-                  <td>Laptop HP Pavilion</td>
-                  <td>Electrónicos</td>
-                  <td>$15,999.00</td>
-                  <td className="text-success fw-bold">25</td>
-                  <td>PZA</td>
-                  <td>
-                    <span className="badge bg-success">Activo</span>
-                  </td>
-                  <td className="text-center">
-                    <button
-                      className="btn btn-sm btn-outline-primary me-1"
-                      onClick={() => navigate("/products/edit/PROD-001")}
-                    >
-                      <i className="bi bi-pencil"></i>
-                    </button>
-                    <button className="btn btn-sm btn-outline-danger">
-                      <i className="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
+                {productos.map((prod) => (
+                  <tr key={prod.ProductoID}>
+                    <td>{prod.Codigo}</td>
+                    <td>{prod.Nombre}</td>
+                    <td>{prod.CategoriaID}</td>
+                    <td>{prod.Descripcion}</td>
+                    <td>{prod.PrecioCompra}</td>
+                    <td>{prod.Unidad}</td>
+                    <td>
+                      {" "}
+                      {/*Estado*/}
+                      <span
+                        className={`badge ${
+                          prod.Estado === "Activo"
+                            ? "bg-success"
+                            : "bg-secondary"
+                        }`}
+                      >
+                        {prod.Estado}
+                      </span>
+                    </td>
+                    <td className="text-center">
+                      {" "}
+                      {/*Acciones*/}
+                      <button
+                        className="btn btn-sm btn-outline-primary me-1"
+                        onClick={() =>
+                          navigate(`/products/edit/${prod.ProductoID}`)
+                        }
+                      >
+                        <i className="bi bi-pencil"></i>
+                      </button>
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => handleEliminarProducto(prod.ProductoID)}
+                      >
+                        <i className="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -138,7 +172,7 @@ function Products() {
 
 function ProductForm() {
   const navigate = useNavigate();
-  const isEditing = true;
+
   const [categorias, setCategorias] = useState([]);
   const [proveedores, setProveedores] = useState([]);
 
@@ -154,80 +188,83 @@ function ProductForm() {
       .catch((err) => console.error("Error cargando proveedores:", err));
   }, []);
 
-  const obtenerDatosProductos = () => {
-    return {
-      Nombre: document.getElementById("txtNombre").value,
-      CategoriaID: document.getElementById("cmbCategoriaID").value,
-      Unidad: document.getElementById("cmbUnit").value,
-      PrecioCompra: document.getElementById("txtCost").value,
-      PrecioVenta: document.getElementById("txtPrice").value,
-      StockMinimo: document.getElementById("txtMinStock").value,
-      StockMaximo: document.getElementById("txtMaxStock").value,
-      Proveedor: document.getElementById("cmbSupplier").value,
-      Estado: document.getElementById("cmbStatus").value,
-      Descripcion: document.getElementById("txtDescription").value,
-      Notas: document.getElementById("txtNotes").value,
-    };
+  const { id } = useParams();
+  const isEditing = !!id;
+  useEffect(() => {
+    if (isEditing) {
+      fetch(`http://localhost:3001/api/products`)
+        .then((res) => res.json())
+        .then((data) => {
+          const producto = data.find((c) => c.ProductoID === parseInt(id));
+          if (producto) {
+            setDataProduct(producto);
+          }
+        });
+    }
+  }, [id, isEditing]);
+
+  const [dataProduct, setDataProduct] = useState({
+    Nombre: "",
+    Codigo: "",
+    CodigoBarras: "",
+    Descripcion: "",
+    CategoriaID: "",
+    Unidad: "PZA",
+    PrecioCompra: 0,
+    PrecioVenta: 0,
+    StockMinimo: 0,
+    StockMaximo: 0,
+    ProveedorID: "",
+    Estado: "Activo",
+    NotasInternas: "",
+  });
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+
+    // Mapeo entre IDs y propiedades reales del objeto
+    const campo = {
+      txtName: "Nombre",
+      txtCode: "Codigo",
+      txtBarcode: "CodigoBarras",
+      txtDescription: "Descripcion",
+      cmbCategoriaID: "CategoriaID",
+      cmbUnit: "Unidad",
+      txtCost: "PrecioCompra",
+      txtPrice: "PrecioVenta",
+      txtMinStock: "StockMinimo",
+      txtMaxStock: "StockMaximo",
+      cmbSupplier: "ProveedorID",
+      cmbStatus: "Estado",
+      txtNotes: "NotasInternas",
+    }[id];
+
+    if (!campo) return;
+
+    setDataProduct((prev) => ({
+      ...prev,
+      [campo]: value,
+    }));
   };
 
-  const guardarProducto = () => {
-    const producto = obtenerDatosProductos();
+  const handleGuardar = () => {
+    const url = isEditing
+      ? `http://localhost:3001/api/products/${id}`
+      : `http://localhost:3001/api/products`;
 
-    const camposObligatorios = [
-      { campo: producto.Nombre, etiqueta: "Nombre" },
-      { campo: producto.CategoriaID, etiqueta: "CategoríaID" },
-      { campo: producto.Unidad, etiqueta: "Unidad" },
-      { campo: producto.PrecioCompra, etiqueta: "Precio de Compra" },
-      { campo: producto.PrecioVenta, etiqueta: "Precio de Venta" },
-      { campo: producto.StockMinimo, etiqueta: "Stock Mínimo" },
-      { campo: producto.StockMaximo, etiqueta: "Stock Máximo" },
-      { campo: producto.Estado, etiqueta: "Estado" },
-    ];
+    const method = isEditing ? "PUT" : "POST";
 
-    for (const { campo, etiqueta } of camposObligatorios) {
-      if (!campo || campo.toString().trim() === "") {
-        alert(`Por favor completa el campo: ${etiqueta}`);
-        return;
-      }
-    }
-
-    fetch("http://localhost:3001/api/products", {
-      method: "POST",
+    fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(producto),
+      body: JSON.stringify(dataProduct),
     })
       .then((res) => res.json())
       .then((data) => {
-        alert(data.message);
-        limpiarFormulario(); // opcional
+        alert(data.message || "Producto guardado correctamente");
+        navigate("/products");
       })
-      .catch((err) => console.error("Error al guardar producto:", err));
-  };
-  const limpiarFormulario = () => {
-    const limpiar = (id) => {
-      const el = document.getElementById(id);
-      if (el) el.value = "";
-    };
-
-    [
-      "txtNombre",
-      "cmbCategoria",
-      "txtContact",
-      "txtPhone",
-      "txtEmail",
-      "txtWebsite",
-      "txtCreditLimit",
-      "txtAddress",
-      "txtNeighborhood",
-      "txtPostalCode",
-      "txtCity",
-      "cmbState",
-      "txtCountry",
-      "cmbBank",
-      "txtClabe",
-      "txtAccountNumber",
-      "cmbCurrency",
-    ].forEach(limpiar);
+      .catch((err) => console.error("Error al guardar:", err));
   };
 
   return (
@@ -257,6 +294,8 @@ function ProductForm() {
                 className="input-text form-control"
                 id="txtName"
                 type="text"
+                onChange={handleChange}
+                value={dataProduct.Nombre}
                 placeholder="Nombre completo del producto"
               />
             </div>
@@ -280,7 +319,12 @@ function ProductForm() {
             </div>
             <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Categoría *</label>
-              <select className="form-control input-text" id="cmbCategoriaID">
+              <select
+                className="form-control input-text"
+                id="cmbCategoriaID"
+                value={dataProduct.CategoriaID}
+                onChange={handleChange}
+              >
                 <option value="">Seleccionar...</option>
                 {categorias.map((cat) => (
                   <option key={cat.CategoriaID} value={cat.CategoriaID}>
@@ -291,7 +335,12 @@ function ProductForm() {
             </div>
             <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Unidad *</label>
-              <select className="input-text form-control" id="cmbUnit">
+              <select
+                className="input-text form-control"
+                id="cmbUnit"
+                onChange={handleChange}
+                value={dataProduct.Unidad}
+              >
                 <option value="PZA">Pieza (PZA)</option>
                 <option value="KG">Kilogramo (KG)</option>
                 <option value="L">Litro (L)</option>
@@ -304,6 +353,8 @@ function ProductForm() {
                 id="txtDescription"
                 rows="3"
                 placeholder="Descripción detallada del producto..."
+                value={dataProduct.Descripcion}
+                onChange={handleChange}
               ></textarea>
             </div>
           </div>
@@ -320,6 +371,8 @@ function ProductForm() {
                 type="number"
                 step="0.01"
                 min="0"
+                value={dataProduct.PrecioCompra}
+                onChange={handleChange}
               />
             </div>
             <div className="col-lg-6 p-2">
@@ -330,6 +383,8 @@ function ProductForm() {
                 type="number"
                 step="0.01"
                 min="0"
+                value={dataProduct.PrecioVenta}
+                onChange={handleChange}
               />
             </div>
             <div className="col-lg-6 p-2">
@@ -340,6 +395,8 @@ function ProductForm() {
                 type="number"
                 min="0"
                 defaultValue="10"
+                value={dataProduct.StockMinimo}
+                onChange={handleChange}
               />
             </div>
             <div className="col-lg-6 p-2">
@@ -350,12 +407,19 @@ function ProductForm() {
                 type="number"
                 min="0"
                 defaultValue="100"
+                value={dataProduct.StockMaximo}
+                onChange={handleChange}
               />
             </div>
 
             <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Proveedor Principal</label>
-              <select className="input-text form-control" id="cmbSupplier">
+              <select
+                className="input-text form-control"
+                id="cmbSupplier"
+                value={dataProduct.ProveedorID}
+                onChange={handleChange}
+              >
                 <option value="">Seleccionar...</option>
                 {proveedores.map((cat) => (
                   <option key={cat.ProveedorID} value={cat.ProveedorID}>
@@ -378,6 +442,8 @@ function ProductForm() {
                 id="txtNotes"
                 rows="2"
                 placeholder="Información relevante para el equipo..."
+                value={dataProduct.NotasInternas}
+                onChange={handleChange}
               ></textarea>
             </div>
           </div>
@@ -394,7 +460,7 @@ function ProductForm() {
           >
             <i className="bi bi-x-circle"></i> Cancelar
           </button>
-          <button className="btn btn-primary" onClick={guardarProducto}>
+          <button className="btn btn-primary" onClick={handleGuardar}>
             Guardar Producto
           </button>
         </div>
