@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "../styles/inputs.css";
 import "../styles/checks.css";
+import { estadosMexico } from "../utils/EstadosMex.jsx";
 
 export default function PurchaseSeuppliers() {
   const [productos, setProductos] = useState([
@@ -50,6 +51,37 @@ export default function PurchaseSeuppliers() {
   const guardarProveedor = () => {
     const proveedor = obtenerDatosProveedor();
 
+    // Validar campos requeridos
+    const camposObligatorios = [
+      { campo: proveedor.Nombre, etiqueta: "Nombre/Razón Social" },
+      { campo: proveedor.RFC, etiqueta: "RFC" },
+      { campo: proveedor.Contacto, etiqueta: "Contacto" },
+      { campo: proveedor.Telefono, etiqueta: "Teléfono" },
+      { campo: proveedor.Email, etiqueta: "Email" },
+      { campo: proveedor.CalleNumero, etiqueta: "Calle y Número" },
+      { campo: proveedor.Colonia, etiqueta: "Colonia" },
+      { campo: proveedor.CP, etiqueta: "Código Postal" },
+      { campo: proveedor.Ciudad, etiqueta: "Ciudad" },
+      { campo: proveedor.Estado, etiqueta: "Estado" },
+      { campo: proveedor.Pais, etiqueta: "País" },
+      { campo: proveedor.Banco, etiqueta: "Banco" },
+      { campo: proveedor.CLABE, etiqueta: "CLABE" },
+      { campo: proveedor.Moneda, etiqueta: "Moneda" },
+    ];
+    for (const { campo, etiqueta } of camposObligatorios) {
+      if (!campo || campo.trim() === "") {
+        alert(`Por favor completa el campo: ${etiqueta}`);
+        return; // Detiene la ejecución si hay un campo vacío
+      }
+    }
+
+    const productosValidos = proveedor.Productos.filter(
+      (p) => p.Nombre?.trim() && p.Codigo?.trim() && p.TiempoEntrega?.trim()
+    );
+    if (productosValidos.length === 0) {
+      alert("Debes agregar al menos un producto o servicio con nombre.");
+      return;
+    }
     fetch("http://localhost:3001/api/suppliers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -58,9 +90,39 @@ export default function PurchaseSeuppliers() {
       .then((res) => res.json())
       .then((data) => {
         alert("Proveedor guardado correctamente");
+        limpiarFormulario();
         // opcional: limpiar formulario o redirigir
       })
       .catch((err) => console.error("Error al guardar proveedor:", err));
+  };
+
+  const limpiarFormulario = () => {
+    const limpiar = (id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    };
+
+    [
+      "txtSupplierName",
+      "txtRFC",
+      "txtContact",
+      "txtPhone",
+      "txtEmail",
+      "txtWebsite",
+      "txtCreditLimit",
+      "txtAddress",
+      "txtNeighborhood",
+      "txtPostalCode",
+      "txtCity",
+      "cmbState",
+      "txtCountry",
+      "cmbBank",
+      "txtClabe",
+      "txtAccountNumber",
+      "cmbCurrency",
+    ].forEach(limpiar);
+
+    setProductos([{ Nombre: "", Codigo: "", TiempoEntrega: "" }]); // Limpia productos
   };
 
   return (
@@ -154,7 +216,7 @@ export default function PurchaseSeuppliers() {
         </div>
 
         {/* Sección de Dirección */}
-        <div className="row mb-4">
+        <div className="row mb-4 border-top pt-4">
           <div className="col-lg-12">
             <h4 className="mb-3">Dirección Fiscal</h4>
           </div>
@@ -209,9 +271,12 @@ export default function PurchaseSeuppliers() {
             <label style={{ fontSize: 18 }}>Estado *</label>
             <select className="input-text form-control" id="cmbState">
               <option value="">Seleccionar...</option>
-              <option value="CDMX">Ciudad de México</option>
-              <option value="JAL">Jalisco</option>
-              {/* Agregar todos los estados */}
+              {estadosMexico.map((estado) => (
+                <option key={estado.value} value={estado.value}>
+                  {" "}
+                  {estado.label}{" "}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -229,7 +294,7 @@ export default function PurchaseSeuppliers() {
         </div>
 
         {/* Sección Bancaria */}
-        <div className="row mb-4">
+        <div className="row mb-4 border-top pt-4">
           <div className="col-lg-12">
             <h4 className="mb-3">Datos Bancarios</h4>
           </div>
@@ -265,6 +330,7 @@ export default function PurchaseSeuppliers() {
               id="txtAccountNumber"
               type="text"
               placeholder="10-16 dígitos"
+              maxLength="16"
             />
           </div>
 
@@ -318,9 +384,8 @@ export default function PurchaseSeuppliers() {
                         />
                       </td>
                       <td>
-                        <input
+                        <select
                           className="input-text form-control"
-                          type="text"
                           value={prod.TiempoEntrega}
                           onChange={(e) =>
                             actualizarProducto(
@@ -329,7 +394,14 @@ export default function PurchaseSeuppliers() {
                               e.target.value
                             )
                           }
-                        />
+                        >
+                          <option value="">Seleccionar...</option>
+                          <option value="1 Día">1 Día</option>
+                          <option value="3 Días">3 Días</option>
+                          <option value="1 Semana">1 Semana</option>
+                          <option value="2 Semanas">2 Semanas</option>
+                          <option value="1 Mes">1 Mes</option>
+                        </select>
                       </td>
                       <td>
                         <button
