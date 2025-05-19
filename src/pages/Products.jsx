@@ -203,6 +203,21 @@ function ProductForm() {
     }
   }, [id, isEditing]);
 
+  useEffect(() => {
+    if (!isEditing) {
+      fetch("http://localhost:3001/api/products/next/code")
+        .then((res) => res.json())
+        .then((data) => {
+          setDataProduct((prev) => ({
+            ...prev,
+            Codigo: data.codigo,
+            CodigoBarras: data.barCode,
+          }));
+        })
+        .catch((err) => console.error("Error al generar nuevo código.", err));
+    }
+  }, [isEditing]);
+
   const [dataProduct, setDataProduct] = useState({
     Nombre: "",
     Codigo: "",
@@ -305,7 +320,8 @@ function ProductForm() {
                 className="input-text form-control"
                 id="txtCode"
                 type="text"
-                placeholder="PROD-001"
+                value={dataProduct.Codigo}
+                readOnly
               />
             </div>
             <div className="col-lg-6 p-2">
@@ -314,7 +330,8 @@ function ProductForm() {
                 className="input-text form-control"
                 id="txtBarcode"
                 type="text"
-                placeholder="750123456789"
+                value={dataProduct.CodigoBarras}
+                readOnly
               />
             </div>
             <div className="col-lg-6 p-2">
@@ -430,7 +447,12 @@ function ProductForm() {
             </div>
             <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Estado *</label>
-              <select className="input-text form-control" id="cmbStatus">
+              <select
+                className="input-text form-control"
+                id="cmbStatus"
+                value={dataProduct.Estado}
+                onChange={handleChange}
+              >
                 <option value="active">Activo</option>
                 <option value="inactive">Inactivo</option>
               </select>

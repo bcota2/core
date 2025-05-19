@@ -1,27 +1,38 @@
 import express from "express";
 import db from "../db/sqlite.js";
+import { Barcode } from "lucide-react";
 
 const router = express.Router();
 
-// Obtener todos
 router.get("/", (req, res) => {
-  const productos = db.prepare("SELECT * FROM Productos").all();
+  const stmt = db.prepare("SELECT * FROM Productos");
+  const productos = stmt.all();
   res.json(productos);
 });
 
-// Agregar
+router.get("/:id", (req, res) => {
+  const { id } = req.params;
+
+  const stmt = db.prepare("SELECT * FROM Productos WHERE ProductoID = @id");
+  const producto = stmt.get({ id: Number(id) });
+
+  if (!producto) {
+    return res.status(404).json({ error: "Producto no encontrado" });
+  }
+
+  res.json(producto);
+});
+
 router.post("/", (req, res) => {
   const data = req.body;
 
-  // Contar productos para generar nuevo código
   const total = db.prepare("SELECT COUNT(*) as total FROM Productos").get().total;
   const nuevoCodigo = `PROD-${String(total + 1).padStart(4, "0")}`;
 
-  // Generar código de barras aleatorio si no viene uno
   const codigoBarras =
     data.CodigoBarras && data.CodigoBarras.trim() !== ""
       ? data.CodigoBarras
-      : Math.floor(Math.random() * 9000000000000 + 1000000000000).toString(); // 13 dígitos
+      : Math.floor(Math.random() * 9000000000000 + 1000000000000).toString();
 
   const stmt = db.prepare(`
     INSERT INTO Productos (
@@ -58,38 +69,48 @@ router.post("/", (req, res) => {
   });
 });
 
-// Eliminar
-router.delete("/:id", (req, res) => {
-  const { id } = req.params;
-  db.prepare("DELETE FROM Productos WHERE ProductoID = ?").run(id);
-  res.json({ message: "Producto Eliminado" });
+router.get("/next/code", (req, res) => {
+  const total = db.prepare("SELECT COUNT(*) as total FROM Productos").get().total;
+  const nuevoCodigo = `PROD-${String(total + 1).padStart(4, "0")}`;
+  const nuevoBarCode = Math.floor(Math.random() * 9000000000000 + 1000000000000).toString();
+  
+  res.json({ codigo: nuevoCodigo , barCode: nuevoBarCode});
 });
 
-// Actualizar categoría existente
+
 router.put("/:id", (req, res) => {
-  const { id } = req.params.id;
+  const { id } = req.params;
   const data = req.body;
 
   const stmt = db.prepare(`
     UPDATE Productos SET
-      Nombre = @Nombre, 
-      CodigoBarras = @CodigoBarras, 
+      Nombre = @Nombre,
+      CodigoBarras = @CodigoBarras,
       Descripcion = @Descripcion,
       CategoriaID = @CategoriaID,
-      Unidad = @Unidad, 
-      PrecioCompra = @PrecioCompra, 
+      Unidad = @Unidad,
+      PrecioCompra = @PrecioCompra,
       PrecioVenta = @PrecioVenta,
-      StockMinimo = @StockMinimo, 
-      StockMaximo = @StockMaximo, 
-      ProveedorID = @ProveedorID, 
-      Estado = @Estado, 
+      StockMinimo = @StockMinimo,
+      StockMaximo = @StockMaximo,
+      ProveedorID = @ProveedorID,
+      Estado = @Estado,
       NotasInternas = @NotasInternas
-    WHERE ProductoID = @id
+    WHERE ProductoID = @ProductoID
   `);
 
   stmt.run({ ...data, ProductoID: id });
-  res.json({ message: "Producto actualizado correctamente." });
+
+  res.json({ message: `Producto actualizado correctamente.` });
 });
 
+router.delete("/:id", (req, res) => {
+  const { id } = req.params;
+
+  const stmt = db.prepare("DELETE FROM Productos WHERE ProductoID = ?");
+  stmt.run(id);
+
+  res.json({ message: "Producto eliminado correctamente" });
+});
 
 export default router;
