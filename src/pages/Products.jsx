@@ -4,6 +4,25 @@ import { useEffect, useState } from "react";
 function Products() {
   const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
+  const [estado, setEstado] = useState("Todos"); // valor inicial
+
+  const [categorias, setCategorias] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/categories")
+      .then((res) => res.json())
+      .then((data) => setCategorias(data))
+      .catch((err) => console.error("Error cargando Categorías:", err));
+  }, []);
+
+  useEffect(() => {
+    debugger;
+    fetch(`http://localhost:3001/api/products/status/${estado}`)
+      .then((res) => res.json())
+      .then((data) => setProductos(data))
+      .catch((err) => console.error("Error cargando Filtros.", err));
+  }, [estado]);
+
 
   useEffect(() => {
     fetch("http://localhost:3001/api/products")
@@ -13,7 +32,6 @@ function Products() {
   }, []);
 
   const handleEliminarProducto = (id) => {
-    debugger;
     if (!window.confirm("¿Deseas eliminar este producto?")) return;
 
     fetch(`http://localhost:3001/api/products/${id}`, {
@@ -49,17 +67,20 @@ function Products() {
         <div className="col-lg-3 p-2">
           <label style={{ fontSize: 18 }}>Categoría</label>
           <select className="input-text form-control" id="cmbCategoryFilter">
-            <option value="">Todas</option>
-            <option value="electronics">Electrónicos</option>
-            <option value="parts">Refacciones</option>
+                <option value="">Seleccionar...</option>
+                {categorias.map((cat) => (
+                  <option key={cat.CategoriaID} value={cat.CategoriaID}>
+                    {cat.Nombre}
+                  </option>
+                ))}
           </select>
         </div>
         <div className="col-lg-3 p-2">
           <label style={{ fontSize: 18 }}>Estado</label>
-          <select className="input-text form-control" id="cmbStatusFilter">
+          <select className="input-text form-control" id="cmbStatusFilter" onChange={(e) => setEstado(e.target.value)} value={estado}>
             <option value="">Todos</option>
-            <option value="active">Activos</option>
-            <option value="inactive">Inactivos</option>
+            <option value="Activo">Activos</option>
+            <option value="Inactivo">Inactivos</option>
           </select>
         </div>
         <div className="col-lg-6 p-2">

@@ -10,6 +10,22 @@ router.get("/", (req, res) => {
   res.json(productos);
 });
 
+router.get("/status/:estado", (req, res) => {
+  debugger;
+  const estado = req.params.estado;
+
+  let productos;
+  if (estado === "Todos") {
+    const stmt = db.prepare("SELECT * FROM Productos");
+    productos = stmt.all();
+  } else {
+    const stmt = db.prepare("SELECT * FROM Productos WHERE Estado = ?");
+    productos = stmt.all(estado);
+  }
+
+  res.json(productos);
+});
+
 router.get("/:id", (req, res) => {
   const { id } = req.params;
 
@@ -26,7 +42,9 @@ router.get("/:id", (req, res) => {
 router.post("/", (req, res) => {
   const data = req.body;
 
-  const total = db.prepare("SELECT COUNT(*) as total FROM Productos").get().total;
+  const total = db
+    .prepare("SELECT COUNT(*) as total FROM Productos")
+    .get().total;
   const nuevoCodigo = `PROD-${String(total + 1).padStart(4, "0")}`;
 
   const codigoBarras =
@@ -59,24 +77,27 @@ router.post("/", (req, res) => {
     StockMaximo: parseInt(data.StockMaximo),
     ProveedorID: parseInt(data.ProveedorID),
     Estado: data.Estado,
-    NotasInternas: data.NotasInternas || ""
+    NotasInternas: data.NotasInternas || "",
   });
 
   res.status(201).json({
     message: `Producto "${data.Nombre}" creado correctamente.`,
     Codigo: nuevoCodigo,
-    CodigoBarras: codigoBarras
+    CodigoBarras: codigoBarras,
   });
 });
 
 router.get("/next/code", (req, res) => {
-  const total = db.prepare("SELECT COUNT(*) as total FROM Productos").get().total;
+  const total = db
+    .prepare("SELECT COUNT(*) as total FROM Productos")
+    .get().total;
   const nuevoCodigo = `PROD-${String(total + 1).padStart(4, "0")}`;
-  const nuevoBarCode = Math.floor(Math.random() * 9000000000000 + 1000000000000).toString();
-  
-  res.json({ codigo: nuevoCodigo , barCode: nuevoBarCode});
-});
+  const nuevoBarCode = Math.floor(
+    Math.random() * 9000000000000 + 1000000000000
+  ).toString();
 
+  res.json({ codigo: nuevoCodigo, barCode: nuevoBarCode });
+});
 
 router.put("/:id", (req, res) => {
   const { id } = req.params;
