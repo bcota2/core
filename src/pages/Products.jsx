@@ -1,35 +1,41 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
+import { PiEraserDuotone } from "react-icons/pi";
 
 function Products() {
   const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
   const [estado, setEstado] = useState("Todos"); // valor inicial
-
+  const [categoriaID, setCategoriaID] = useState("");
   const [categorias, setCategorias] = useState([]);
+  const [buscar, setBuscar] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/categories")
+    fetch("http://localhost:3001/api/categories/for/products")
       .then((res) => res.json())
       .then((data) => setCategorias(data))
-      .catch((err) => console.error("Error cargando Categorías:", err));
+      .catch((err) => Swal.fire("Error Cargando Categorias", err, "error"));
   }, []);
 
   useEffect(() => {
-    debugger;
-    fetch(`http://localhost:3001/api/products/status/${estado}`)
-      .then((res) => res.json())
-      .then((data) => setProductos(data))
-      .catch((err) => console.error("Error cargando Filtros.", err));
-  }, [estado]);
+    const url = new URL("http://localhost:3001/api/products/filter");
+    if (estado && estado !== "Todos") url.searchParams.append("estado", estado);
+    if (categoriaID) url.searchParams.append("categoria", categoriaID);
+    if (buscar.trim() !== "") url.searchParams.append("buscar", buscar.trim());
 
-
-  useEffect(() => {
-    fetch("http://localhost:3001/api/products")
+    fetch(url)
       .then((res) => res.json())
-      .then((data) => setProductos(data))
-      .catch((err) => console.error("Error cargando productos:", err));
-  }, []);
+      .then((data) => {
+        if (!Array.isArray(data)) {
+          setProductos([]);
+          console.error("Respuesta no válida:", data);
+        } else {
+          setProductos(data);
+        }
+      })
+      .catch((err) => Swal.fire("Error Cargando Productos", err, "error"));
+  }, [estado, categoriaID, buscar]);
 
   const handleEliminarProducto = (id) => {
     if (!window.confirm("¿Deseas eliminar este producto?")) return;
@@ -42,7 +48,7 @@ function Products() {
         console.log(data.message);
         setProductos(productos.filter((prod) => prod.ProductoID !== id));
       })
-      .catch((err) => console.error("Error al eliminar:", err));
+      .catch((err) => Swal.fire("Error al Eliminar Producto", err, "error"));
   };
 
   return (
@@ -63,22 +69,32 @@ function Products() {
       </div>
 
       {/* Filtros */}
-      <div className="row mb-3">
+      <div className=" row mb-3 ">
         <div className="col-lg-3 p-2">
           <label style={{ fontSize: 18 }}>Categoría</label>
-          <select className="input-text form-control" id="cmbCategoryFilter">
-                <option value="">Seleccionar...</option>
-                {categorias.map((cat) => (
-                  <option key={cat.CategoriaID} value={cat.CategoriaID}>
-                    {cat.Nombre}
-                  </option>
-                ))}
+          <select
+            className="input-text form-control form-select "
+            id="cmbCategoryFilter"
+            onChange={(e) => setCategoriaID(e.target.value)}
+            value={categoriaID}
+          >
+            <option value="">Seleccionar...</option>
+            {categorias.map((cat) => (
+              <option key={cat.CategoriaID} value={cat.CategoriaID}>
+                {cat.Nombre}
+              </option>
+            ))}
           </select>
         </div>
         <div className="col-lg-3 p-2">
           <label style={{ fontSize: 18 }}>Estado</label>
-          <select className="input-text form-control" id="cmbStatusFilter" onChange={(e) => setEstado(e.target.value)} value={estado}>
-            <option value="">Todos</option>
+          <select
+            className="input-text form-control form-select"
+            id="cmbStatusFilter"
+            onChange={(e) => setEstado(e.target.value)}
+            value={estado}
+          >
+            <option value="Todos">Todos</option>
             <option value="Activo">Activos</option>
             <option value="Inactivo">Inactivos</option>
           </select>
@@ -89,38 +105,48 @@ function Products() {
             <input
               className="input-text form-control"
               type="text"
-              placeholder="Código, nombre o descripción..."
+              placeholder="Nombre de Articulo..."
+              value={buscar}
+              onChange={(e) => setBuscar(e.target.value)}
             />
-            <button className="btn btn-outline-secondary">
-              <i className="bi bi-search"></i>
+            <button
+              className="btn btn-outline-secondary "
+              onClick={() => {
+                setBuscar("");
+                setEstado("Todos");
+                setCategoriaID("");
+              }}
+            >
+              <i className="bi bi-eraser"></i>
             </button>
           </div>
         </div>
       </div>
 
       {/* Listado de Productos */}
-      <div className="row mb-3">
-        <div className="col-lg-12">
+      <div className="row mb-3 border-top border-2">
+        <div className="col-lg-12 mt-4">
           <div className="table-responsive">
             <table className="table table-bordered table-hover">
               <thead className="bg-light">
-                <tr>
+                <tr className="text-center">
                   <th width="10%">Código</th>
                   <th width="15%">Nombre</th>
                   <th width="15%">Categoría</th>
                   <th width="15%">Descripcion</th>
-                  <th width="10%">Precio</th>
+                  <th width="10%">Costo</th>
                   <th width="10%">Unidad</th>
                   <th width="10%">Estado</th>
                   <th width="15%">Acciones</th>
                 </tr>
               </thead>
-              <tbody>
+
+              <tbody className="text-center">
                 {productos.map((prod) => (
                   <tr key={prod.ProductoID}>
                     <td>{prod.Codigo}</td>
                     <td>{prod.Nombre}</td>
-                    <td>{prod.CategoriaID}</td>
+                    <td>{prod.CategoriaNombre}</td>
                     <td>{prod.Descripcion}</td>
                     <td>{prod.PrecioCompra}</td>
                     <td>{prod.Unidad}</td>
@@ -128,10 +154,8 @@ function Products() {
                       {" "}
                       {/*Estado*/}
                       <span
-                        className={`badge ${
-                          prod.Estado === "Activo"
-                            ? "bg-success"
-                            : "bg-secondary"
+                        className={`text-center badge ${
+                          prod.Estado === "Activo" ? "bg-success" : "bg-warning"
                         }`}
                       >
                         {prod.Estado}
@@ -198,15 +222,15 @@ function ProductForm() {
   const [proveedores, setProveedores] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/categories")
+    fetch("http://localhost:3001/api/categories/for/products")
       .then((res) => res.json())
       .then((data) => setCategorias(data))
-      .catch((err) => console.error("Error cargando categorías:", err));
+      .catch((err) => Swal.fire("Error Cargando Categorias", err, "error"));
 
     fetch("http://localhost:3001/api/suppliers")
       .then((res) => res.json())
       .then((data) => setProveedores(data))
-      .catch((err) => console.error("Error cargando proveedores:", err));
+      .catch((err) => Swal.fire("Error Cargando Proveedores", err, "error"));
   }, []);
 
   const { id } = useParams();
@@ -235,7 +259,9 @@ function ProductForm() {
             CodigoBarras: data.barCode,
           }));
         })
-        .catch((err) => console.error("Error al generar nuevo código.", err));
+        .catch((err) =>
+          Swal.fire("Error al Generar Nuevo Código", err, "error")
+        );
     }
   }, [isEditing]);
 
@@ -297,10 +323,14 @@ function ProductForm() {
     })
       .then((res) => res.json())
       .then((data) => {
-        alert(data.message || "Producto guardado correctamente");
+        Swal.fire(
+          "Producto Actualizado Exitosamente",
+          "Buen Trabajo!",
+          "success"
+        );
         navigate("/products");
       })
-      .catch((err) => console.error("Error al guardar:", err));
+      .catch((err) => Swal.fire("Error al Guardar Producto", err, "success"));
   };
 
   return (
@@ -358,7 +388,7 @@ function ProductForm() {
             <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Categoría *</label>
               <select
-                className="form-control input-text"
+                className="form-control input-text form-select"
                 id="cmbCategoriaID"
                 value={dataProduct.CategoriaID}
                 onChange={handleChange}
@@ -374,7 +404,7 @@ function ProductForm() {
             <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Unidad *</label>
               <select
-                className="input-text form-control"
+                className="input-text form-control form-select"
                 id="cmbUnit"
                 onChange={handleChange}
                 value={dataProduct.Unidad}
@@ -453,7 +483,7 @@ function ProductForm() {
             <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Proveedor Principal</label>
               <select
-                className="input-text form-control"
+                className="input-text form-control form-select"
                 id="cmbSupplier"
                 value={dataProduct.ProveedorID}
                 onChange={handleChange}
@@ -469,13 +499,13 @@ function ProductForm() {
             <div className="col-lg-6 p-2">
               <label style={{ fontSize: 18 }}>Estado *</label>
               <select
-                className="input-text form-control"
+                className="input-text form-control form-select"
                 id="cmbStatus"
                 value={dataProduct.Estado}
                 onChange={handleChange}
               >
-                <option value="active">Activo</option>
-                <option value="inactive">Inactivo</option>
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
               </select>
             </div>
             <div className="col-lg-12 p-2">

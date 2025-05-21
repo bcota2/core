@@ -1,4 +1,34 @@
+import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
+
 export default function PurchaseOrders() {
+  const [proveedores, setProveedores] = useState([]);
+  const [productos, setProductos] = useState([]);
+
+  const [orderItems, setOrderItems] = useState([]);
+  const [productoID, setProductID] = useState();
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/suppliers")
+      .then((res) => res.json())
+      .then((data) => setProveedores(data))
+      .catch((err) => Swal.fire("Error Cargando Proveedores", err, "error"));
+
+    const url = new URL("http://localhost:3001/api/products/filter");
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!Array.isArray(data)) {
+          setProductos([]);
+          console.error("Respuesta no válida:", data);
+        } else {
+          setProductos(data);
+        }
+      })
+      .catch((err) => Swal.fire("Error Cargando Productos", err, "error"));
+  }, []);
+
   return (
     <>
       <div className="container-fluid">
@@ -12,8 +42,8 @@ export default function PurchaseOrders() {
           <div className="col-lg-3 p-3">
             <label style={{ fontSize: 18 }}>Order Number *</label>
             <input
-              className="input-text form-control"
               id="txtOrderNumber"
+              className="input-text form-control"
               type="text"
               placeholder="PO-2023-0001"
               disabled
@@ -24,8 +54,8 @@ export default function PurchaseOrders() {
           <div className="col-lg-3 p-3">
             <label style={{ fontSize: 18 }}>Order Date *</label>
             <input
-              className="input-text form-control"
               id="txtOrderDate"
+              className="input-text form-control"
               type="date"
             />
           </div>
@@ -34,8 +64,8 @@ export default function PurchaseOrders() {
           <div className="col-lg-3 p-3">
             <label style={{ fontSize: 18 }}>Expected Delivery *</label>
             <input
-              className="input-text form-control"
               id="txtExpectedDelivery"
+              className="input-text form-control"
               type="date"
             />
           </div>
@@ -43,28 +73,38 @@ export default function PurchaseOrders() {
           {/* Proveedor */}
           <div className="col-lg-3 p-3">
             <label style={{ fontSize: 18 }}>Supplier *</label>
-            <select className="input-text form-control" id="cmbSupplier">
+            <select
+              id="selSupplier"
+              className="input-text form-control form-select"
+            >
               <option value="">Select Supplier...</option>
-              <option value="1">Proveedor A</option>
-              <option value="2">Proveedor B</option>
+              {proveedores.map((cat) => (
+                <option key={cat.ProveedorID} value={cat.ProveedorID}>
+                  {cat.Nombre}
+                </option>
+              ))}
             </select>
           </div>
 
           {/* Estado de la Orden */}
           <div className="col-lg-3 p-3">
             <label style={{ fontSize: 18 }}>Status</label>
-            <select className="input-text form-control" id="cmbStatus" disabled>
+            <select
+              id="selStatus"
+              className="input-text form-control "
+              disabled
+            >
               <option value="draft">Draft</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
             </select>
           </div>
 
           {/* Almacén de Destino */}
           <div className="col-lg-3 p-3">
             <label style={{ fontSize: 18 }}>Warehouse *</label>
-            <select className="input-text form-control" id="cmbWarehouse">
+            <select
+              id="selWarehouse"
+              className="input-text form-control form-select"
+            >
               <option value="">Select Warehouse...</option>
               <option value="1">Almacén Central</option>
               <option value="2">Almacén Norte</option>
@@ -78,29 +118,35 @@ export default function PurchaseOrders() {
             <h4 className="mb-3">Order Items</h4>
             <div className="table-responsive">
               <table className="table table-bordered">
-                <thead>
+                <thead className="text-center">
                   <tr>
                     <th style={{ width: "40%" }}>Product</th>
                     <th>SKU</th>
-                    <th>Quantity</th>
-                    <th>Unit Price</th>
-                    <th>Tax</th>
+                    <th width="8%">Quantity</th>
+                    <th>Unit Cost</th>
+                    <th width="8%">Tax</th>
                     <th>Total</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="text-center">
                   <tr>
                     <td>
                       <select
-                        className="input-text form-control"
-                        id="cmbProduct1"
+                        id="selProduct"
+                        className="input-text form-control form-select"
                       >
                         <option value="">Select Product...</option>
+                        {productos.map((cat) => (
+                          <option key={cat.ProductoID} value={cat.ProductoID}>
+                            {cat.Nombre}
+                          </option>
+                        ))}
                       </select>
                     </td>
                     <td>
                       <input
+                        id="txtSku"
                         className="input-text form-control"
                         type="text"
                         disabled
@@ -108,6 +154,7 @@ export default function PurchaseOrders() {
                     </td>
                     <td>
                       <input
+                        id="txtQty"
                         className="input-text form-control"
                         type="number"
                         min="1"
@@ -116,33 +163,40 @@ export default function PurchaseOrders() {
                     </td>
                     <td>
                       <input
+                        id="txtPrice"
                         className="input-text form-control"
                         type="number"
                         step="0.01"
                         min="0"
+                        disabled
                       />
                     </td>
                     <td>
-                      <select className="input-text form-control">
+                      <select id="selTax" className="input-text form-control">
                         <option value="0">0%</option>
                         <option value="16">16%</option>
                       </select>
                     </td>
                     <td>
                       <input
+                        id="txtTot"
                         className="input-text form-control"
                         type="text"
                         disabled
                       />
                     </td>
                     <td>
-                      <button className="btn btn-danger btn-sm">×</button>
+                      <button id="btnDelete" className="btn btn-danger btn-sm">
+                        ×
+                      </button>
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <button className="btn btn-secondary mt-2">+ Add Item</button>
+            <button id="btnAddItem" className="btn btn-secondary mt-2">
+              + Add Item
+            </button>
           </div>
         </div>
 

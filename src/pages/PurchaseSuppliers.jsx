@@ -269,7 +269,10 @@ export default function PurchaseSeuppliers() {
           {/* Estado */}
           <div className="col-lg-4 p-3">
             <label style={{ fontSize: 18 }}>Estado *</label>
-            <select className="input-text form-control" id="cmbState">
+            <select
+              className="input-text form-control form-select"
+              id="cmbState"
+            >
               <option value="">Seleccionar...</option>
               {estadosMexico.map((estado) => (
                 <option key={estado.value} value={estado.value}>
@@ -302,7 +305,10 @@ export default function PurchaseSeuppliers() {
           {/* Banco */}
           <div className="col-lg-3 p-3">
             <label style={{ fontSize: 18 }}>Banco *</label>
-            <select className="input-text form-control" id="cmbBank">
+            <select
+              className="input-text form-control form-select"
+              id="cmbBank"
+            >
               <option value="">Seleccionar...</option>
               <option value="BBVA">BBVA</option>
               <option value="Santander">Santander</option>
@@ -337,7 +343,10 @@ export default function PurchaseSeuppliers() {
           {/* Moneda */}
           <div className="col-lg-3 p-3">
             <label style={{ fontSize: 18 }}>Moneda</label>
-            <select className="input-text form-control" id="cmbCurrency">
+            <select
+              className="input-text form-control form-select"
+              id="cmbCurrency"
+            >
               <option value="MXN" selected>
                 MXN - Peso Mexicano
               </option>
@@ -385,7 +394,7 @@ export default function PurchaseSeuppliers() {
                       </td>
                       <td>
                         <select
-                          className="input-text form-control"
+                          className="input-text form-control form-select"
                           value={prod.TiempoEntrega}
                           onChange={(e) =>
                             actualizarProducto(

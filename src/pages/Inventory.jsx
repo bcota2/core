@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 export default function Documentation() {
   const navigate = useNavigate();
@@ -108,16 +108,28 @@ export default function Documentation() {
           <div className="col-lg-12">
             <div className="border p-3 bg-light">
               <div className="d-flex justify-content-between">
-                <button className="btn btn-success me-2" onClick={() => navigate('/products/new')}>
+                <button
+                  className="btn btn-success me-2"
+                  onClick={() => navigate("/products/new")}
+                >
                   <i className="bi bi-plus-circle"></i> Nuevo Producto
                 </button>
-                <button className="btn btn-warning me-2" onClick={() => navigate('/inventory/adjustment')}>
+                <button
+                  className="btn btn-warning me-2"
+                  onClick={() => navigate("/inventory/adjustment")}
+                >
                   <i className="bi bi-box-seam"></i> Ajuste de Inventario
                 </button>
-                <button className="btn btn-info me-2" onClick={() => navigate('/inventory/transfer')}>
+                <button
+                  className="btn btn-info me-2"
+                  onClick={() => navigate("/inventory/transfer")}
+                >
                   <i className="bi bi-arrow-left-right"></i> Transferencia
                 </button>
-                <button className="btn btn-secondary me-2" onClick={() => navigate('/reports')}>
+                <button
+                  className="btn btn-secondary me-2"
+                  onClick={() => navigate("/reports")}
+                >
                   <i className="bi bi-file-earmark-bar-graph"></i> Reporte
                 </button>
                 <button className="btn btn-dark">

@@ -10,6 +10,7 @@
     "@testing-library/user-event": "^13.5.0",
     "better-sqlite3": "^11.10.0",
     "bootstrap": "^5.3.5",
+    "bootstrap-icons": "^1.13.1",
     "chart.js": "^4.4.9",
     "cors": "^2.8.5",
     "express": "^5.1.0",
@@ -23,6 +24,7 @@
     "react-router-dom": "^7.5.2",
     "react-scripts": "5.0.1",
     "react-switch": "^7.1.0",
+    "sweetalert2": "^11.21.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

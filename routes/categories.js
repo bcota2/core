@@ -4,10 +4,34 @@ import db from "../db/sqlite.js";
 const router = express.Router();
 
 // Obtener todas las categorías
-router.get("/", (req, res) => {
+router.get("/for/products", (req, res) => {
   const categorias = db.prepare("SELECT * FROM Categorias").all();
   res.json(categorias);
 });
+
+router.get("/filter", (req, res) => {
+  const { estado, buscar } = req.query;
+
+  let query = `SELECT * FROM Categorias WHERE 1=1`;
+  const params = [];
+
+  if (estado && estado !== "Todas") {
+    query += " AND Estado = ?";
+    params.push(estado);
+  }
+  if (buscar && buscar.trim() !== "") {
+    query += ` AND (Nombre LIKE ? OR Codigo LIKE ?)`;
+    const keyword = `%${buscar.trim()}%`;
+    params.push(keyword, keyword);
+  }
+
+  const stmt = db.prepare(query);
+  const categorias = stmt.all(...params);
+
+  res.json(categorias);
+});
+
+
 
 // Crear nueva categoría
 router.post("/", (req, res) => {

@@ -1,17 +1,31 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import React from "react";
+import Swal from "sweetalert2";
 
 function Categories() {
   const navigate = useNavigate();
   const [categorias, setCategorias] = useState([]);
+  const [buscar, setBuscar] = useState("");
+  const [estado, setEstado] = useState("Todas");
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/categories")
+    const url = new URL("http://localhost:3001/api/categories/filter");
+    if (estado && estado !== "Todos") url.searchParams.append("estado", estado);
+    if (buscar.trim() !== "") url.searchParams.append("buscar", buscar.trim());
+
+    fetch(url)
       .then((res) => res.json())
-      .then((data) => setCategorias(data))
-      .catch((err) => console.error("Error cargando categorías:", err));
-  }, []);
+      .then((data) => {
+        if (!Array.isArray(data)) {
+          setCategorias([]);
+          console.error("Respuesta no válida:", data);
+        } else {
+          setCategorias(data);
+        }
+      })
+      .catch((err) => Swal.fire("Error Cargando Categorias", err, "error"));
+  }, [estado, buscar]);
 
   const handleEliminarCategoria = (id) => {
     if (!window.confirm("¿Deseas eliminar esta categoría?")) return;
@@ -24,7 +38,7 @@ function Categories() {
         console.log(data.message);
         setCategorias(categorias.filter((cat) => cat.CategoriaID !== id));
       })
-      .catch((err) => console.error("Error al eliminar:", err));
+      .catch((err) => Swal.fire("Error al Eliminar", err, "error"));
   };
 
   return (
@@ -46,26 +60,28 @@ function Categories() {
 
       {/* Filtros Rápidos */}
       <div className="row mb-3">
-        <div className="col-lg-4 p-2">
+        <div className="col-lg-6 p-2">
           <label style={{ fontSize: 18 }}>Buscar</label>
           <input
-            className="input-text form-control"
+            className="input-text form-control "
             type="text"
-            placeholder="Nombre o código de categoría..."
+            placeholder="Nombre o Código de categoría..."
+            value={buscar}
+            onChange={(e) => setBuscar(e.target.value)}
           />
         </div>
         <div className="col-lg-4 p-2">
           <label style={{ fontSize: 18 }}>Estado</label>
-          <select className="input-text form-control" id="cmbStatus">
-            <option value="">Todas</option>
-            <option value="active">Activas</option>
-            <option value="inactive">Inactivas</option>
+          <select
+            className="input-text form-control form-select"
+            id="cmbStatus"
+            value={estado}
+            onChange={(e) => setEstado(e.target.value)}
+          >
+            <option value="Todas">Todas</option>
+            <option value="Activa">Activas</option>
+            <option value="Inactiva">Inactivas</option>
           </select>
-        </div>
-        <div className="col-lg-4 p-2 d-flex align-items-end">
-          <button className="btn btn-primary w-100">
-            <i className="bi bi-funnel"></i> Filtrar
-          </button>
         </div>
       </div>
 
@@ -74,7 +90,7 @@ function Categories() {
         <div className="col-lg-12">
           <div className="table-responsive">
             <table className="table table-bordered table-hover">
-              <thead className="bg-light">
+              <thead className="bg-light text-center">
                 <tr>
                   <th width="15%">Código</th>
                   <th width="25%">Nombre</th>
@@ -84,7 +100,7 @@ function Categories() {
                   <th width="10%">Acciones</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="text-center">
                 {categorias.map((cat) => (
                   <tr key={cat.CategoriaID}>
                     <td>{cat.Codigo}</td>
@@ -95,9 +111,7 @@ function Categories() {
                     <td>
                       <span
                         className={`badge ${
-                          cat.Estado === "Activa"
-                            ? "bg-success"
-                            : "bg-secondary"
+                          cat.Estado === "Activa" ? "bg-success" : "bg-warning"
                         }`}
                       >
                         {cat.Estado}

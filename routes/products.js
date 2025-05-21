@@ -1,6 +1,5 @@
 import express from "express";
 import db from "../db/sqlite.js";
-import { Barcode } from "lucide-react";
 
 const router = express.Router();
 
@@ -10,18 +9,34 @@ router.get("/", (req, res) => {
   res.json(productos);
 });
 
-router.get("/status/:estado", (req, res) => {
-  debugger;
-  const estado = req.params.estado;
+// GET /api/products/filter?estado=Activo&categoria=2
+router.get("/filter", (req, res) => {
+  const { estado, categoria, buscar } = req.query;
 
-  let productos;
-  if (estado === "Todos") {
-    const stmt = db.prepare("SELECT * FROM Productos");
-    productos = stmt.all();
-  } else {
-    const stmt = db.prepare("SELECT * FROM Productos WHERE Estado = ?");
-    productos = stmt.all(estado);
+  let query = `SELECT p.*, c.Nombre as CategoriaNombre
+  FROM Productos p
+  INNER JOIN Categorias c ON p.CategoriaID = c.CategoriaID
+  WHERE 1=1`;
+  const params = [];
+
+  if (estado && estado !== "Todos") {
+    query += " AND p.Estado = ?";
+    params.push(estado);
   }
+
+  if (categoria && categoria !== "") {
+    query += " AND p.CategoriaID = ?";
+    params.push(Number(categoria));
+  }
+
+    if (buscar && buscar.trim() !== "") {
+    query += ` AND (p.Nombre LIKE ? OR p.Codigo LIKE ? OR p.Descripcion LIKE ?)`;
+    const keyword = `%${buscar.trim()}%`;
+    params.push(keyword, keyword, keyword);
+  }
+
+  const stmt = db.prepare(query);
+  const productos = stmt.all(...params);
 
   res.json(productos);
 });
