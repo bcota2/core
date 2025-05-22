@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
-import { PiEraserDuotone } from "react-icons/pi";
 
 function Products() {
   const navigate = useNavigate();

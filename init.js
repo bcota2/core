@@ -79,4 +79,35 @@ CREATE TABLE IF NOT EXISTS ProveedorProductos (
 `
 ).run();
 
+db.prepare(`CREATE TABLE IF NOT EXISTS PurchaseOrders (
+  PurchaseOrderID INTEGER PRIMARY KEY AUTOINCREMENT,
+  OrderDate TEXT,
+  ExpectedDelivery TEXT,
+  SupplierID INTEGER,
+  WarehouseID INTEGER,
+  Notes TEXT,
+  Shipping REAL,
+  Status TEXT,
+  Subtotal REAL,
+  TaxTotal REAL,
+  Total REAL
+);
+`).run();
+
+db.prepare(
+  `CREATE TABLE IF NOT EXISTS PurchaseOrderItems (
+  ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
+  PurchaseOrderID INTEGER,
+  ProductoID INTEGER,
+  SKU TEXT,
+  Quantity INTEGER,
+  UnitCost REAL,
+  Tax REAL,
+  Total REAL,
+  FOREIGN KEY (PurchaseOrderID) REFERENCES PurchaseOrders(PurchaseOrderID)
+);
+`
+)
+.run();
+
 console.log("Todas las tablas han sido creadas correctamente.");

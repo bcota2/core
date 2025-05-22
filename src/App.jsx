@@ -4,10 +4,10 @@ import SideMenu from "./layout/Sidebar.jsx";
 import Inventory from "./pages/Inventory.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Sales from "./pages/Sales.jsx";
-import PurchaseOrders from "./pages/PurchaseOrders.jsx";
+import { PurchaseOrders, PurchaseOrdersList, ViewPurchaseOrder } from "./pages/PurchaseOrders.jsx";
 import Reports from "./pages/Reports.jsx";
 import { Products, ProductForm } from "./pages/Products.jsx";
-import {Categories,CategoryForm} from "./pages/Categories.jsx";
+import { Categories, CategoryForm } from "./pages/Categories.jsx";
 import PurchaseSuppliers from "./pages/PurchaseSuppliers.jsx";
 import Quotes from "./pages/Quotes.jsx";
 import Adjustement from "./pages/InventoryAdjustement.jsx";
@@ -26,6 +26,8 @@ function App() {
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/sales" element={<Sales />} />
             <Route path="/purchase/orders" element={<PurchaseOrders />} />
+            <Route path="/purchase-orders" element={<PurchaseOrdersList />} />
+            <Route path="/purchase-orders/view/:id"element={<ViewPurchaseOrder />} />
             <Route path="/purchase/suppliers" element={<PurchaseSuppliers />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/reports/generate" element={<ReportsGenerate />} />
@@ -34,7 +36,10 @@ function App() {
             <Route path="/products/edit/:id" element={<ProductForm />} />{" "}
             <Route path="/categories" element={<Categories />} />
             <Route path="/categories/new" element={<CategoryForm />} />
-            <Route path="/categories/edit/:id" element={<CategoryForm />} />{" "}
+            <Route
+              path="/categories/edit/:id"
+              element={<CategoryForm />}
+            />{" "}
             <Route path="/sales/quotes" element={<Quotes />} />
             <Route path="/inventory/adjustment" element={<Adjustement />} />
             <Route path="/inventory/transfer" element={<Transfer />} />

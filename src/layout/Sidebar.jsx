@@ -2,7 +2,7 @@ import { Sidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar";
 import { Link } from "react-router-dom";
 import { FaCubes, FaMoneyBills,FaClipboardUser,FaMoneyBillTransfer,FaCashRegister  } from "react-icons/fa6";
 import { IoBarChartSharp } from "react-icons/io5";
-import { MdOutlineDashboardCustomize, MdOutlineBorderColor } from "react-icons/md";
+import { MdOutlineDashboardCustomize, MdMarkChatRead, MdRateReview  } from "react-icons/md";
 import { BsShopWindow } from "react-icons/bs";
 import { HiCube } from "react-icons/hi2";
 import { FaRegFolderOpen } from "react-icons/fa";
@@ -29,7 +29,8 @@ export default function SideMenu() {
         </SubMenu>
 
         <SubMenu label="Purchases" icon={<FaMoneyBills   />} className="sidebar-text">
-          <MenuItem component={<Link to="/purchase/orders"/>} icon={<MdOutlineBorderColor  />}  className="submenu-text"> Orders </MenuItem>
+          <MenuItem component={<Link to="/purchase/orders"/>} icon={<MdRateReview   />}  className="submenu-text"> Orders </MenuItem>
+          <MenuItem component={<Link to="/purchase-orders"/>} icon={<MdMarkChatRead   />}  className="submenu-text"> Orders View </MenuItem>
           <MenuItem component={<Link to="/purchase/suppliers"/>} icon={<FaClipboardUser  />}  className="submenu-text"> Suppliers </MenuItem>
         </SubMenu>
 
