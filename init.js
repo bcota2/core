@@ -79,7 +79,8 @@ CREATE TABLE IF NOT EXISTS ProveedorProductos (
 `
 ).run();
 
-db.prepare(`CREATE TABLE IF NOT EXISTS PurchaseOrders (
+db.prepare(
+  `CREATE TABLE IF NOT EXISTS PurchaseOrders (
   PurchaseOrderID INTEGER PRIMARY KEY AUTOINCREMENT,
   OrderDate TEXT,
   ExpectedDelivery TEXT,
@@ -92,7 +93,8 @@ db.prepare(`CREATE TABLE IF NOT EXISTS PurchaseOrders (
   TaxTotal REAL,
   Total REAL
 );
-`).run();
+`
+).run();
 
 db.prepare(
   `CREATE TABLE IF NOT EXISTS PurchaseOrderItems (
@@ -107,7 +109,123 @@ db.prepare(
   FOREIGN KEY (PurchaseOrderID) REFERENCES PurchaseOrders(PurchaseOrderID)
 );
 `
-)
-.run();
+).run();
+
+db.prepare(
+  `CREATE TABLE IF NOT EXISTS Clientes (
+  ClienteID INTEGER PRIMARY KEY AUTOINCREMENT,
+  Nombre TEXT,
+  RFC TEXT,
+  Telefono TEXT,
+  Correo TEXT,
+  Direccion TEXT
+  );`
+).run();
+
+db.prepare(
+  `
+  CREATE TABLE IF NOT EXISTS Usuarios (
+    UsuarioID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Nombre TEXT NOT NULL,
+    Correo TEXT UNIQUE,
+    Rol TEXT DEFAULT 'Vendedor',
+    Usuario TEXT UNIQUE,
+    PasswordHash TEXT,
+    Estado TEXT DEFAULT 'Activo',
+    FechaRegistro TEXT
+  );
+`
+).run();
+
+db.prepare(
+  `
+CREATE TABLE IF NOT EXISTS Quotes (
+  QuoteID INTEGER PRIMARY KEY AUTOINCREMENT,
+  QuoteNumber TEXT,
+  QuoteDate TEXT,
+  ClienteID INTEGER,
+  Moneda TEXT,
+  ValidezDias INTEGER,
+  Condiciones TEXT,
+  NotasInternas TEXT,
+  DescuentoGlobal REAL,
+  VendedorID INTEGER,
+  Estado TEXT
+);
+`
+).run();
+
+db.prepare(
+  `
+CREATE TABLE IF NOT EXISTS QuoteItems (
+  ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
+  QuoteID INTEGER,
+  ProductoID INTEGER,
+  Unidad TEXT,
+  PrecioUnitario REAL,
+  Cantidad INTEGER,
+  DescuentoUnitario REAL,
+  Total REAL
+);
+
+`
+).run();
+
+db.prepare(
+  `
+CREATE TABLE IF NOT EXISTS Ventas (
+  VentaID INTEGER PRIMARY KEY AUTOINCREMENT,
+  ClienteID INTEGER,
+  Fecha TEXT,
+  MetodoPago TEXT,
+  EfectivoRecibido REAL,
+  DescuentoGlobal REAL,
+  Subtotal REAL,
+  Iva REAL,
+  Total REAL,
+  Estado TEXT DEFAULT 'Completada',
+  FOREIGN KEY (ClienteID) REFERENCES Clientes(ClienteID)
+);
+
+`
+).run();
+
+db.prepare(
+  `
+CREATE TABLE IF NOT EXISTS VentaItems (
+  VentaItemID INTEGER PRIMARY KEY AUTOINCREMENT,
+  VentaID INTEGER,
+  ProductoID INTEGER,
+  NombreProducto TEXT,
+  Unidad TEXT,
+  PrecioUnitario REAL,
+  Cantidad INTEGER,
+  DescuentoUnitario REAL,
+  Total REAL,
+  FOREIGN KEY (VentaID) REFERENCES Ventas(VentaID),
+  FOREIGN KEY (ProductoID) REFERENCES Productos(ProductoID)
+);
+
+`
+).run();
+
+db.prepare(
+  `
+CREATE TABLE IF NOT EXISTS Reportes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  tipo TEXT NOT NULL,
+  formato TEXT NOT NULL,
+  fecha_generacion TEXT NOT NULL,
+  fecha_inicio TEXT,
+  fecha_fin TEXT,
+  rango_fechas TEXT,
+  generado_por TEXT,
+  almacen TEXT,
+  categoria TEXT
+);
+
+`
+).run();
 
 console.log("Todas las tablas han sido creadas correctamente.");

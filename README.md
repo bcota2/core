@@ -73,5 +73,7 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 npm install better-sqlite3
 npm i sweetalert2
 npm install bootstrap-icons
+npm install recharts
+npm install dayjs
 
 ##Notas

@@ -1,6 +1,6 @@
 import { Sidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar";
 import { Link } from "react-router-dom";
-import { FaCubes, FaMoneyBills,FaClipboardUser,FaMoneyBillTransfer,FaCashRegister  } from "react-icons/fa6";
+import { FaCubes, FaMoneyBills,FaClipboardUser,FaMoneyBillTransfer,FaCashRegister,FaAddressBook   } from "react-icons/fa6";
 import { IoBarChartSharp } from "react-icons/io5";
 import { MdOutlineDashboardCustomize, MdMarkChatRead, MdRateReview  } from "react-icons/md";
 import { BsShopWindow } from "react-icons/bs";
@@ -26,6 +26,7 @@ export default function SideMenu() {
         <SubMenu label="Sales" icon={< BsShopWindow />} className="sidebar-text">
           <MenuItem  className="submenu-text" component={<Link to="/sales/quotes"/>} icon={<FaMoneyBillTransfer />} > Quotes </MenuItem>
           <MenuItem  className="submenu-text" component={<Link to="/sales"/>} icon={<FaCashRegister  />} > Point of Sales </MenuItem>
+          <MenuItem  className="submenu-text" component={<Link to="/sales/customers"/>} icon={<FaAddressBook   />} > Customers </MenuItem>
         </SubMenu>
 
         <SubMenu label="Purchases" icon={<FaMoneyBills   />} className="sidebar-text">

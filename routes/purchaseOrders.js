@@ -174,12 +174,14 @@ router.get("/:id", (req, res) => {
     }
 
     const items = db
-      .prepare(`
+      .prepare(
+        `
       SELECT poi.*, p.Nombre AS NombreProducto
       FROM PurchaseOrderItems poi
       JOIN Productos p ON poi.ProductoID = p.ProductoID
       WHERE poi.PurchaseOrderID = ?
-    `)
+    `
+      )
       .all(id);
 
     res.json({ order, items });

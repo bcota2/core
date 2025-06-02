@@ -16,6 +16,8 @@ function PurchaseOrders() {
   const [warehouseID, setWarehouseID] = useState("");
   const [notes, setNotes] = useState("");
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     fetch("http://localhost:3001/api/suppliers")
       .then((res) => res.json())
@@ -106,7 +108,7 @@ function PurchaseOrders() {
   };
   const { subtotal, tax, total } = calcularTotales();
 
-  const handleSaveDraft = async () => {
+  const handleSaveOrder = async (status = "Draft") => {
     if (
       !orderDate ||
       !expectedDelivery ||
@@ -116,7 +118,7 @@ function PurchaseOrders() {
     ) {
       Swal.fire(
         "Faltan datos",
-        "Por favor completa todos los campos obligatorios y agrega al menos un producto.",
+        "Completa todos los campos requeridos y agrega productos.",
         "warning"
       );
       return;
@@ -130,7 +132,7 @@ function PurchaseOrders() {
       warehouseID,
       notes,
       shipping: parseFloat(shipping) || 0,
-      status: "Draft",
+      status, // puede ser "Draft" o "Approved"
       items: orderItems.map((item) => ({
         productoID: item.productoID,
         sku: item.sku,
@@ -144,21 +146,22 @@ function PurchaseOrders() {
     try {
       const res = await fetch("http://localhost:3001/api/purchase-orders", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Error al guardar la orden");
-      }
+      if (!res.ok) throw new Error("No se pudo guardar la orden");
 
-      Swal.fire("Éxito", "Orden guardada como borrador.", "success");
-      // Aquí podrías limpiar el formulario o redirigir al listado
-    } catch (error) {
-      Swal.fire("Error", error.message, "error");
+      Swal.fire(
+        "Éxito",
+        `Orden ${
+          status === "Approved" ? "aprobada" : "guardada como borrador"
+        }`,
+        "success"
+      );
+      navigate("/purchase-orders");
+    } catch (err) {
+      Swal.fire("Error", err.message, "error");
     }
   };
 
@@ -424,21 +427,16 @@ function PurchaseOrders() {
             <button
               className="btn btn-secondary me-2"
               style={{ padding: "8px 20px", fontSize: 16 }}
-              onClick={handleSaveDraft}
+              onClick={() => handleSaveOrder("Draft")}
             >
               Save Draft
             </button>
             <button
               className="btn btn-success me-2"
               style={{ padding: "8px 20px", fontSize: 16 }}
+              onClick={() => handleSaveOrder("Approved")}
             >
               Approve Order
-            </button>
-            <button
-              className="btn btn-primary"
-              style={{ padding: "8px 20px", fontSize: 16 }}
-            >
-              Process Order
             </button>
           </div>
         </div>
@@ -486,13 +484,17 @@ function PurchaseOrdersList() {
                 <td>{order.SupplierName}</td>
                 <td>
                   <span
-                        className={`text-center badge ${
-                          order.Status === "Draft" ? "bg-warning" : order.Status === "Approve" ? "bg-succes"  : "bg-danger"
-                        }`}
-                      >
-                        {order.Status}
-                      </span>
-                  </td>
+                    className={`text-center badge ${
+                      order.Status === "Draft"
+                        ? "bg-warning"
+                        : order.Status === "Approved"
+                        ? "bg-success"
+                        : "bg-danger"
+                    }`}
+                  >
+                    {order.Status}
+                  </span>
+                </td>
                 <td>${order.Total.toFixed(2)}</td>
                 <td>
                   <Link
@@ -511,8 +513,7 @@ function PurchaseOrdersList() {
   );
 }
 
-function ViewPurchaseOrder()
-{
+function ViewPurchaseOrder() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
@@ -542,15 +543,48 @@ function ViewPurchaseOrder()
     if (!confirm.isConfirmed) return;
 
     try {
-      const res = await fetch(`http://localhost:3001/api/purchase-orders/${id}/status`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "Approved" }),
-      });
+      const res = await fetch(
+        `http://localhost:3001/api/purchase-orders/${id}/status`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "Approved" }),
+        }
+      );
 
       if (!res.ok) throw new Error("No se pudo aprobar la orden");
 
       Swal.fire("Éxito", "Orden aprobada", "success");
+      navigate("/purchase-orders");
+    } catch (err) {
+      Swal.fire("Error", err.message, "error");
+    }
+  };
+
+  const cancelarOrden = async () => {
+    const confirm = await Swal.fire({
+      title: "¿Cancelar orden?",
+      text: "Esta acción marcará la orden como 'Cancelled'.",
+      icon: "error",
+      showCancelButton: true,
+      confirmButtonText: "Sí, cancelar",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:3001/api/purchase-orders/${id}/status`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "Cancelled" }),
+        }
+      );
+
+      if (!res.ok) throw new Error("No se pudo cancelar la orden");
+
+      Swal.fire("Orden cancelada", "", "error");
       navigate("/purchase-orders");
     } catch (err) {
       Swal.fire("Error", err.message, "error");
@@ -562,9 +596,15 @@ function ViewPurchaseOrder()
   return (
     <div className="container mt-4">
       <h3>Orden: {order.OrderNumber}</h3>
-      <p><strong>Fecha:</strong> {order.OrderDate}</p>
-      <p><strong>Estado:</strong> {order.Status}</p>
-      <p><strong>Notas:</strong> {order.Notes}</p>
+      <p>
+        <strong>Fecha:</strong> {order.OrderDate}
+      </p>
+      <p>
+        <strong>Estado:</strong> {order.Status}
+      </p>
+      <p>
+        <strong>Notas:</strong> {order.Notes}
+      </p>
 
       <table className="table table-bordered mt-4">
         <thead className="text-center">
@@ -594,22 +634,47 @@ function ViewPurchaseOrder()
       </table>
 
       <div className="text-end mt-3">
-        <p><strong>Subtotal:</strong> ${order.Subtotal.toFixed(2)}</p>
-        <p><strong>Impuestos:</strong> ${order.TaxTotal.toFixed(2)}</p>
-        <p><strong>Envío:</strong> ${order.Shipping.toFixed(2)}</p>
-        <h5><strong>Total:</strong> ${order.Total.toFixed(2)}</h5>
+        <p>
+          <strong>Subtotal:</strong> ${order.Subtotal.toFixed(2)}
+        </p>
+        <p>
+          <strong>Impuestos:</strong> ${order.TaxTotal.toFixed(2)}
+        </p>
+        <p>
+          <strong>Envío:</strong> ${order.Shipping.toFixed(2)}
+        </p>
+        <h5>
+          <strong>Total:</strong> ${order.Total.toFixed(2)}
+        </h5>
       </div>
 
-      {order.Status === "Draft" && (
-        <button className="btn btn-success mt-3" onClick={aprobarOrden}>
-          Aprobar Orden
-        </button>
+      {(order.Status === "Draft" && (
+        <div className="mt-4 d-flex justify-content-end gap-2">
+          <button className="btn btn-success" onClick={aprobarOrden}>
+            Aprobar Orden
+          </button>
+          <button className="btn btn-danger" onClick={cancelarOrden}>
+            Cancelar Orden
+          </button>
+          <button
+            className="btn btn-outline-info"
+            onClick={() => navigate("/purchase-orders")}
+          >
+            Regresar
+          </button>
+        </div>
+      )) || (
+        <div className="mt-4 d-flex justify-content-end gap-2">
+          <button
+            className="btn btn-outline-info"
+            onClick={() => navigate("/purchase-orders")}
+          >
+            Regresar
+          </button>
+        </div>
       )}
     </div>
   );
-
-
 }
-
 
 export { PurchaseOrders, PurchaseOrdersList, ViewPurchaseOrder };

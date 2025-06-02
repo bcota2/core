@@ -13,6 +13,7 @@ import Quotes from "./pages/Quotes.jsx";
 import Adjustement from "./pages/InventoryAdjustement.jsx";
 import Transfer from "./pages/Transfer.jsx";
 import ReportsGenerate from "./pages/ReportsGenerate.jsx";
+import Customers from "./pages/Customers.jsx";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/sales" element={<Sales />} />
+            <Route path="/sales/customers" element={<Customers />} />
             <Route path="/purchase/orders" element={<PurchaseOrders />} />
             <Route path="/purchase-orders" element={<PurchaseOrdersList />} />
             <Route path="/purchase-orders/view/:id"element={<ViewPurchaseOrder />} />
